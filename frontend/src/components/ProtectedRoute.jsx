@@ -24,8 +24,8 @@ const ProtectedRoute = ({ children }) => {
   // Affichage pendant le chargement (évite le flash de contenu)
   if (session === undefined) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#F4F5F7]">
-        <div className="w-8 h-8 border-4 border-[#2F00E6] border-t-transparent rounded-full animate-spin" />
+      <div className="flex items-center justify-center min-h-screen bg-[#F4F5F7] dark:bg-[#0F172A] transition-colors duration-300">
+        <div className="w-8 h-8 border-4 border-[#2F00E6] dark:border-blue-400 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }

@@ -10,8 +10,16 @@
 body {
   font-family: "Inter", sans-serif;
   background-color: #f9fafb;
-  color: #000000;
+  color: #111827;
+  transition: background-color 0.3s, color 0.3s;
 }
+
+html.dark body {
+  background-color: #0F172A;
+  color: #ffffff;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer utilities {
   .animate-fade-in-left {
@@ -121,4 +129,37 @@ body {
   100% {
     transform: translateX(200%);
   }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 3s linear infinite;
 }

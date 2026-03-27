@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Compass, Check, Settings, ChevronDown, X } from 'lucide-react';
+import { Compass, Check, Settings, ChevronDown, X, Sparkles } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -51,6 +51,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             </NavLink>
             
             <NavLink 
+              to="/features" 
+              className={({isActive}) => `flex items-center gap-4 px-8 py-3.5 transition-all font-medium border-l-4 ${isActive ? 'bg-white/10 border-white text-white' : 'border-transparent text-white/80 hover:bg-white/5 hover:text-white'}`}
+            >
+              <Sparkles className="w-5 h-5" strokeWidth={2}/>
+              <span className="text-[16px]">{t('entrepreneur_ai')}</span>
+            </NavLink>
+
+            <NavLink 
               to="/history" 
               className={({isActive}) => `flex items-center gap-4 px-8 py-3.5 transition-all font-medium border-l-4 ${isActive ? 'bg-white/10 border-white text-white' : 'border-transparent text-white/80 hover:bg-white/5 hover:text-white'}`}
             >
@@ -70,8 +78,18 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           {/* Footer Area */}
           <div className="flex flex-col gap-6 w-full mt-10">
             <div className="flex flex-col gap-3 px-8 text-[15px]">
-              <a href="#" className="text-white/80 hover:text-white transition-opacity">{t('about')}</a>
-              <a href="#" className="text-white/80 hover:text-white transition-opacity">{t('help')}</a>
+              <NavLink 
+                to="/about" 
+                className={({isActive}) => `transition-opacity ${isActive ? 'text-white font-bold' : 'text-white/80 hover:text-white'}`}
+              >
+                {t('about')}
+              </NavLink>
+              <NavLink 
+                to="/help" 
+                className={({isActive}) => `transition-opacity ${isActive ? 'text-white font-bold' : 'text-white/80 hover:text-white'}`}
+              >
+                {t('help')}
+              </NavLink>
             </div>
             
             <div className="bg-[#E5E7EB] text-black h-[50px] px-6 mx-6 rounded-md flex items-center justify-between cursor-pointer group hover:bg-[#D1D5DB] transition-colors">

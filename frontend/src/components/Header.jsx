@@ -32,7 +32,7 @@ const Header = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="h-[70px] lg:h-[90px] pt-4 lg:pt-8 flex items-center lg:items-start justify-between px-6 lg:px-16 w-full relative z-10 shrink-0">
+    <header className="h-[70px] lg:h-[90px] pt-4 lg:pt-8 flex items-center lg:items-start justify-between px-6 lg:px-16 w-full relative z-10 shrink-0 bg-[#f4f5f7]/80 dark:bg-[#0F172A]/80 backdrop-blur-md transition-colors duration-300">
       
       {/* Mobile Menu Button */}
       <button 

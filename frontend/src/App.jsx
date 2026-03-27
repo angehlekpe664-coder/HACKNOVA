@@ -9,6 +9,9 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import History from './pages/History';
 import Settings from './pages/Settings';
+import About from './pages/About';
+import Help from './pages/About'; 
+import OtherFeatures from './pages/OtherFeatures';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -24,14 +27,17 @@ function App() {
           <ProtectedRoute>
             <div className="flex bg-[#F4F5F7] dark:bg-[#0F172A] min-h-screen relative overflow-x-hidden transition-colors duration-300">
               <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-              <div className="flex-1 lg:ml-[280px] flex flex-col min-h-screen w-full transition-all duration-300 relative z-0">
+              <div className="flex-1 lg:ml-[280px] flex flex-col min-h-screen w-full transition-all duration-300 relative z-0 bg-[#F4F5F7] dark:bg-[#0F172A]">
                 <Header onMenuClick={() => setIsSidebarOpen(true)} />
                 <main className="flex-1 bg-[#F4F5F7] dark:bg-[#0F172A] p-6 lg:p-0 transition-colors duration-300">
                   <Routes>
                     <Route path="/generate" element={<BrandGenerator />} />
                     <Route path="/results" element={<BrandResults />} />
+                    <Route path="/features" element={<OtherFeatures />} />
                     <Route path="/history" element={<History />} />
                     <Route path="/settings" element={<Settings />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/help" element={<Help />} />
                     <Route path="*" element={<Navigate to="/generate" replace />} />
                   </Routes>
                 </main>
