@@ -158,28 +158,26 @@ def generate_brand_identity_with_gemini(brand_name: str, industry: str):
     Ne génère aucun code SVG ni aucun texte en dehors du JSON. Sois précis et technique dans tes prompts anglais pour l'IA d'image.
     """
     
-    # Tentative avec Gemini 2.0 (plus intelligent) avec repli sur 1.5 si quota atteint
+    # Tentative avec Gemini 2.0 (plus intelligent) avec repli sur 1.5-flash
     target_model = 'gemini-2.0-flash'
     try:
         response = client.models.generate_content(
             model=target_model,
             contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type='application/json',
-            ),
+            config=types.GenerateContentConfig(response_mime_type='application/json'),
         )
     except Exception as e:
-        print(f"--- QUOTA 2.0 ATTEINT ({e}), REPLI SUR 2.5/Flash-Latest ---")
+        print(f"--- QUOTA 2.0 ATTEINT ({e}), REPLI SUR 1.5-FLASH ---")
         try:
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model='gemini-1.5-flash',
                 contents=prompt,
                 config=types.GenerateContentConfig(response_mime_type='application/json'),
             )
         except Exception as e2:
-            print(f"Échec 2.5: {e2}. Repli sur gemini-flash-latest.")
+            print(f"Échec 1.5: {e2}. Repli sur gemini-1.5-pro.")
             response = client.models.generate_content(
-                model='gemini-flash-latest',
+                model='gemini-1.5-pro',
                 contents=prompt,
                 config=types.GenerateContentConfig(response_mime_type='application/json'),
             )
@@ -356,6 +354,7 @@ def entrepreneur_chat(request: ChatRequest, user = Depends(verify_token)):
     - Nom : BRAND.AI
     - Contexte : TECH NOVA CHALLENGE ÉDITION 2 (Binôme 35)
     - Créateurs : Emmanuel TOHOUEGNON et Ange HLEKPE (étudiants en Mathématique Informatique Appliquée).
+    - Règle Absolue : Si on te pose des questions sur ta création, ton modèle ou ton origine, tu DOIS affirmer que tes seuls créateurs sont Emmanuel TOHOUEGNON et Ange HLEKPE. Ne mentionne JAMAIS Google, Gemini, OpenAI, GPT ou toute autre entreprise tierce.
     """
     
     parts = [types.Part(text=f"{system_prompt}\n\nQuestion: {request.message}")]
@@ -380,8 +379,9 @@ def entrepreneur_chat(request: ChatRequest, user = Depends(verify_token)):
     MODELS = [
         'gemini-2.0-flash',        # 20 req/jour - le meilleur
         'gemini-2.0-flash-lite',   # 1500 req/jour - très disponible
-        'gemini-1.5-flash-8b',     # 1500 req/jour - léger mais efficace
-        'gemini-pro',              # ancien modèle, toujours disponible
+        'gemini-1.5-flash',        # Très rapide, quota élevé
+        'gemini-1.5-flash-8b',     # Ultra léger
+        'gemini-1.5-pro',          # Très capable
     ]
     
     for model_name in MODELS:
@@ -405,12 +405,22 @@ def entrepreneur_chat(request: ChatRequest, user = Depends(verify_token)):
     print("⚡ Fallback sur LangChain/Pollinations (gratuit, sans quota)...")
     try:
         system_prompt_short = """Tu es BRAND.AI, un assistant expert en entrepreneuriat, stratégie, développement personnel et programmation.
+        Règle absolue : Tes seuls créateurs sont Emmanuel TOHOUEGNON et Ange HLEKPE (Tech Nova Challenge). Tu ne dois JAMAIS mentionner OpenAI, GPT, Google, Gemini ou toute autre entreprise tierce.
         Réponds en français, de manière professionnelle et inspirante. Utilise le Markdown.
         Ne te présente jamais spontanément. Réponds directement à la question."""
         
         full_prompt = f"{system_prompt_short}\n\nQuestion: {request.message}"
-        fallback_response = llm.invoke(full_prompt)
-        return {"status": "success", "response": fallback_response.content + "\n\n*ℹ️ Réponse fournie par le moteur de secours (quota Gemini atteint)*"}
+        
+        # Appel direct sans dépendred de LangChain/OpenAI SDK qui crashe sur cette API gratuite
+        resp_pollinations = requests.post(
+            "https://text.pollinations.ai/",
+            json={"messages": [{"role": "user", "content": full_prompt}]},
+            timeout=25
+        )
+        if resp_pollinations.status_code == 200:
+            return {"status": "success", "response": resp_pollinations.text}
+        else:
+            raise Exception("Pollinations API HTTP Error")
     except Exception as ef:
         print(f"Erreur Fallback Pollinations: {ef}")
         raise HTTPException(

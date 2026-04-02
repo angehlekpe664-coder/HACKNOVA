@@ -10,7 +10,7 @@ import Login from './pages/Login';
 import History from './pages/History';
 import Settings from './pages/Settings';
 import About from './pages/About';
-import Help from './pages/About'; 
+import Help from './pages/Help'; 
 import OtherFeatures from './pages/OtherFeatures';
 
 function App() {
@@ -25,11 +25,11 @@ function App() {
         {/* Dashboard Layout (protégé) */}
         <Route path="/*" element={
           <ProtectedRoute>
-            <div className="flex bg-[#F4F5F7] dark:bg-[#0F172A] min-h-screen relative overflow-x-hidden transition-colors duration-300">
+            <div className="flex bg-[#F8FAFC] dark:bg-[#020617] min-h-screen relative overflow-x-hidden transition-colors duration-300 font-['Outfit']">
               <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-              <div className="flex-1 lg:ml-[280px] flex flex-col min-h-screen w-full transition-all duration-300 relative z-0 bg-[#F4F5F7] dark:bg-[#0F172A]">
+              <div className="flex-1 lg:ml-[280px] flex flex-col min-h-screen w-full transition-all duration-300 relative z-0 bg-[#F8FAFC] dark:bg-[#020617]">
                 <Header onMenuClick={() => setIsSidebarOpen(true)} />
-                <main className="flex-1 bg-[#F4F5F7] dark:bg-[#0F172A] p-6 lg:p-0 transition-colors duration-300">
+                <main className="flex-1 bg-[#F8FAFC] dark:bg-[#020617] p-6 lg:p-0 transition-colors duration-300">
                   <Routes>
                     <Route path="/generate" element={<BrandGenerator />} />
                     <Route path="/results" element={<BrandResults />} />

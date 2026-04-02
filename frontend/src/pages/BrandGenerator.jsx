@@ -57,46 +57,78 @@ const BrandGenerator = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-start pt-[40px] lg:pt-[80px] pb-10 w-full px-4 lg:px-0 transition-colors duration-300">
+    <div className="flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full px-6 relative overflow-hidden bg-[#f8fafc] dark:bg-[#020617] transition-colors duration-300">
       <LoadingOverlay isVisible={loading} />
       
-      <div className="text-center mb-8 lg:mb-12 animate-fade-in-up">
-        <h1 className="text-[50px] sm:text-[60px] lg:text-[75px] font-black tracking-tight leading-none mb-2 lg:mb-3 inline-block text-transparent bg-clip-text bg-gradient-to-r from-[#2F00E6] to-[#5CA8FF] font-['Outfit']">
-          {t('welcome')}
-        </h1>
-        <div className="flex items-center justify-center gap-2 text-black/70 dark:text-gray-400">
-          <Sparkles className="w-3 h-3 lg:w-4 lg:h-4 text-[#E2E814]" fill="#E2E814" />
-          <span className="font-medium text-xs lg:text-sm">Powered by AI</span>
+      {/* Premium Background Effects */}
+      <div className="noise-bg opacity-10"></div>
+      <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-[#2F00E6]/5 rounded-full blur-[120px] animate-pulse-glow"></div>
+      <div className="absolute bottom-[-10%] left-[-5%] w-[35%] h-[35%] bg-[#5CA8FF]/5 rounded-full blur-[100px] animate-pulse-glow" style={{ animationDelay: '-5s' }}></div>
+
+      <div className="text-center mb-12 lg:mb-16 relative z-10 animate-fade-in-up">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2F00E6]/5 border border-[#2F00E6]/10 mb-6 group hover:bg-[#2F00E6]/10 transition-colors">
+          <Sparkles className="w-3.5 h-3.5 text-[#2F00E6]" />
+          <span className="text-[11px] font-black uppercase tracking-widest text-[#2F00E6]">Intelligence Artificielle</span>
         </div>
+        <h1 className="text-[55px] sm:text-[75px] lg:text-[90px] font-black tracking-tight leading-[0.9] mb-4 text-[#13009E] dark:text-white font-['Outfit']">
+          Créez votre <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2F00E6] to-[#5CA8FF]">identité unique</span>
+        </h1>
+        <p className="text-gray-500 dark:text-gray-400 font-bold text-lg lg:text-xl max-w-lg mx-auto">
+          Dites-nous qui vous êtes, nous définissons qui vous serez.
+        </p>
       </div>
       
-      <form onSubmit={handleGenerate} className="w-full max-w-[650px] flex flex-col items-center lg:items-start gap-4 lg:gap-6 animate-fade-in-up" style={{animationDelay: '0.1s'}}>
+      <form onSubmit={handleGenerate} className="w-full max-w-[700px] grid grid-cols-1 md:grid-cols-2 gap-5 relative z-10 animate-fade-in-up" style={{animationDelay: '0.1s'}}>
         
-        <input 
-          type="text" 
-          placeholder={t('brand_name_placeholder')} 
-          value={brandName}
-          onChange={(e) => setBrandName(e.target.value)}
-          className="w-full h-[55px] lg:h-[65px] px-6 lg:px-8 rounded-full border border-gray-200 dark:border-gray-800 shadow-sm bg-white dark:bg-[#1A1A2E] text-base lg:text-lg text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2F00E6] transition-all placeholder:text-gray-400 font-medium"
-        />
+        <div className="md:col-span-2 group">
+          <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 ml-4">Nom de la marque</label>
+          <input 
+            type="text" 
+            placeholder={t('brand_name_placeholder')} 
+            value={brandName}
+            onChange={(e) => setBrandName(e.target.value)}
+            className="w-full h-[65px] lg:h-[75px] px-8 rounded-2xl glass-card text-lg lg:text-xl text-gray-800 dark:text-white focus:outline-none focus:ring-4 focus:ring-[#2F00E6]/10 border-2 border-white/50 dark:border-white/5 transition-all placeholder:text-gray-400/50 font-black"
+          />
+        </div>
         
-        <input 
-          type="text" 
-          placeholder={t('industry_placeholder')} 
-          value={industry}
-          onChange={(e) => setIndustry(e.target.value)}
-          className="w-full h-[55px] lg:h-[65px] px-6 lg:px-8 rounded-full border border-gray-200 dark:border-gray-800 shadow-sm bg-white dark:bg-[#1A1A2E] text-base lg:text-lg text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#2F00E6] transition-all placeholder:text-gray-400 font-medium"
-        />
+        <div className="md:col-span-2 group">
+          <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 ml-4">Secteur d'activité</label>
+          <input 
+            type="text" 
+            placeholder={t('industry_placeholder')} 
+            value={industry}
+            onChange={(e) => setIndustry(e.target.value)}
+            className="w-full h-[65px] lg:h-[75px] px-8 rounded-2xl glass-card text-lg lg:text-xl text-gray-800 dark:text-white focus:outline-none focus:ring-4 focus:ring-[#2F00E6]/10 border-2 border-white/50 dark:border-white/5 transition-all placeholder:text-gray-400/50 font-black"
+          />
+        </div>
         
         <button 
           type="submit" 
           disabled={loading || !brandName || !industry}
-          className="mt-4 bg-[#2100E0] hover:bg-[#1A00B8] text-white font-bold text-[18px] lg:text-[20px] py-4 w-full lg:w-auto lg:px-12 rounded-[16px] shadow-[0_8px_20px_rgba(33,0,224,0.3)] transition-all duration-300 disabled:opacity-80 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-95"
+          className="md:col-span-2 mt-6 group relative bg-[#2F00E6] hover:bg-[#1200AB] text-white text-[20px] lg:text-[24px] font-black py-5 rounded-2xl shadow-[0_20px_50px_rgba(47,0,230,0.3)] transition-all hover:scale-[1.02] active:scale-95 duration-300 disabled:opacity-50 overflow-hidden"
         >
-          {loading ? t('generating') : t('generate_btn')}
+          <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]"></div>
+          <span className="relative z-10 flex items-center justify-center gap-3">
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                {t('generating')}
+              </>
+            ) : (
+              <>
+                {t('generate_btn')}
+                <Sparkles size={24} />
+              </>
+            )}
+          </span>
         </button>
 
       </form>
+      
+      {/* Decorative footer text */}
+      <p className="mt-16 text-[10px] text-gray-400 font-black uppercase tracking-[0.4em] opacity-40 relative z-10">
+        Branding Automatisé • Propulsé par BRAND.AI
+      </p>
       
     </div>
   );

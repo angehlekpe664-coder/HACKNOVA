@@ -37,55 +37,84 @@ const About = () => {
   ];
 
   return (
-    <div className="w-full max-w-[1000px] mx-auto animate-fade-in-up lg:px-10 pb-10 pt-8 transition-colors duration-300">
+    <div className="w-full max-w-[1300px] mx-auto lg:px-10 pb-20 pt-10 transition-all duration-300 relative">
+      <div className="noise-bg opacity-10"></div>
       
-      <div className="mb-12 text-center lg:text-left relative">
-        <div className="inline-flex items-center gap-2 bg-gradient-to-r from-[#2F00E6] to-[#0D0066] text-white px-4 py-1.5 rounded-full text-xs font-bold mb-6 shadow-lg animate-bounce">
-          <ShieldCheck className="w-3.5 h-3.5" />
-          {t('challenge_technova')}
+      {/* Animated Glow Orbs */}
+      <div className="absolute top-[-5%] left-[-10%] w-[40%] h-[40%] bg-[#2F00E6]/5 rounded-full blur-[100px] animate-pulse-glow"></div>
+      <div className="absolute bottom-[20%] right-[-5%] w-[45%] h-[45%] bg-[#5CA8FF]/5 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDelay: '-3s' }}></div>
+
+      <div className="mb-16 border-b border-gray-100 dark:border-white/5 pb-12 animate-fade-in-up">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2F00E6]/5 border border-[#2F00E6]/10 mb-6 group cursor-default">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#2F00E6] group-hover:scale-110 transition-transform" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#2F00E6]">{t('challenge_technova')}</span>
         </div>
-        <h1 className="text-4xl lg:text-5xl font-black text-[#0D0066] dark:text-white font-['Outfit'] mb-4">{t('about_title')}</h1>
-        <p className="text-gray-500 dark:text-gray-400 text-lg max-w-2xl">{t('about_subtitle')}</p>
-        <p className="text-[#2F00E6] dark:text-[#5CA8FF] font-black mt-4 uppercase tracking-widest text-sm">{t('credit_hacknova')}</p>
+        <h1 className="text-5xl lg:text-7xl font-black text-[#0D0066] dark:text-white font-['Outfit'] tracking-tight leading-[0.9] mb-6">{t('about_title')}</h1>
+        <p className="text-gray-500 dark:text-gray-400 font-bold text-xl max-w-3xl leading-relaxed">{t('about_subtitle')}</p>
+        <div className="flex items-center gap-4 mt-8">
+           <div className="h-px w-12 bg-[#2F00E6]/30"></div>
+           <p className="text-[#2F00E6] dark:text-[#5CA8FF] font-black uppercase tracking-[0.3em] text-xs">{t('credit_hacknova')}</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
-        <div className="bg-white dark:bg-[#1A1A2E] p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm transition-colors">
-          <div className="w-12 h-12 bg-[#2F00E6]/10 rounded-2xl flex items-center justify-center mb-6">
-            <ShieldCheck className="w-6 h-6 text-[#2F00E6]" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-20 relative z-10 animate-fade-in-up">
+        <div className="glass-card p-12 rounded-[3.5rem] shadow-xl border border-white/50 dark:border-white/5 relative group overflow-hidden">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-[#2F00E6]/5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-[#2F00E6]/10 transition-all duration-1000"></div>
+          <div className="w-16 h-16 bg-[#2F00E6]/10 rounded-[1.5rem] flex items-center justify-center mb-8 shadow-inner border border-[#2F00E6]/10">
+            <Rocket className="w-8 h-8 text-[#2F00E6]" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">{t('mission_title')}</h2>
-          <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+          <h2 className="text-3xl font-black text-[#0D0066] dark:text-white mb-6 font-['Outfit'] tracking-tight">{t('mission_title')}</h2>
+          <p className="text-gray-500 dark:text-gray-400 font-bold text-lg leading-relaxed opacity-80">
             {t('mission_desc')}
           </p>
         </div>
         
-        <div className="bg-gradient-to-br from-[#1800E5] to-[#0D0066] p-8 rounded-3xl shadow-xl text-white flex flex-col justify-center relative overflow-hidden">
-           <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-3xl"></div>
-           <h3 className="text-3xl font-black mb-4 relative z-10 font-['Outfit'] italic">"Empowering the next generation of brands through AI."</h3>
+        <div className="bg-gradient-to-br from-[#2F00E6] via-[#1200AB] to-[#0A0066] p-12 rounded-[3.5rem] shadow-[0_30px_100px_rgba(47,0,230,0.3)] text-white flex flex-col justify-center relative overflow-hidden group">
+           <div className="noise-bg opacity-20"></div>
+           <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-white/10 rounded-full blur-[100px] group-hover:scale-125 transition-transform duration-1000"></div>
+           <h3 className="text-4xl lg:text-5xl font-black mb-6 relative z-10 font-['Outfit'] italic tracking-tighter leading-none">
+             "Empowering the next generation of brands through AI."
+           </h3>
+           <div className="flex items-center gap-4 relative z-10 opacity-40">
+             <div className="h-0.5 w-10 bg-white"></div>
+             <span className="font-black uppercase tracking-[0.4em] text-[10px]">Vision 2026</span>
+           </div>
         </div>
       </div>
 
-      <h2 className="text-2xl font-black text-[#0D0066] dark:text-white font-['Outfit'] mb-8 px-2">{t('tech_title')}</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {techStack.map((tech, index) => (
-          <div key={index} className="bg-white dark:bg-[#1A1A2E] p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-all flex items-start gap-5 group">
-            <div className={`shrink-0 w-12 h-12 ${tech.bg} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
-              <tech.icon className={`w-6 h-6 ${tech.color}`} />
+      <div className="space-y-12 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <div className="flex items-center gap-6">
+          <h2 className="text-3xl font-black text-[#0D0066] dark:text-white font-['Outfit'] tracking-tight">{t('tech_title')}</h2>
+          <div className="flex-1 h-px bg-gray-100 dark:bg-white/5"></div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+          {techStack.map((tech, index) => (
+            <div 
+              key={index} 
+              className="glass-card p-10 rounded-[2.5rem] shadow-xl border border-white/50 dark:border-white/5 hover:shadow-2xl transition-all duration-500 flex items-start gap-8 group hover:-translate-y-1"
+            >
+              <div className={`shrink-0 w-16 h-16 ${tech.bg} rounded-2xl flex items-center justify-center group-hover:rotate-12 transition-all duration-500 shadow-inner border border-white/10`}>
+                <tech.icon className={`w-8 h-8 ${tech.color}`} strokeWidth={2.5} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-black text-[#0D0066] dark:text-white font-['Outfit'] tracking-tight">{tech.name}</h3>
+                <p className="text-gray-500 dark:text-gray-400 font-bold leading-relaxed opacity-80">
+                  {tech.description}
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-gray-800 dark:text-white mb-1">{tech.name}</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                {tech.description}
-              </p>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      <div className="mt-16 pt-8 border-t border-gray-100 dark:border-gray-800 text-center">
-        <p className="text-gray-400 text-sm">Brand.Ai — {t('version')}</p>
+      <div className="mt-28 py-12 border-t border-gray-100 dark:border-white/5 flex flex-col items-center gap-6 opacity-30">
+        <div className="flex items-center gap-4 font-black uppercase tracking-[0.5em] text-[10px]">
+          <span>BRAND.AI</span>
+          <div className="w-1.5 h-1.5 bg-[#2F00E6] rounded-full"></div>
+          <span>V 2.1.0</span>
+        </div>
+        <p className="text-gray-400 font-black text-[10px] uppercase tracking-[0.2em]">{t('credit_hacknova')}</p>
       </div>
 
     </div>

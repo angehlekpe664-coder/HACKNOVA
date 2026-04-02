@@ -22,7 +22,7 @@ def test_imagen():
             # Or it might have 'bytes'. 
             # Let's check attributes of img.
             print(f"Image {i} type: {type(img)}")
-            # For now, let's just try to save if it has a save method
+            # For now, let's just try to save if iœt has a save method
             if hasattr(img.image, 'save'):
                 img.image.save(f"test_logo_imagen_{i}.png")
             else:

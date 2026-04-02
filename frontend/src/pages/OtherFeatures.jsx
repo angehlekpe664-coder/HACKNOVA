@@ -305,24 +305,25 @@ const OtherFeatures = () => {
   };
 
   return (
-    <div className="flex w-full h-[calc(100vh-140px)] lg:h-[calc(100vh-80px)] overflow-hidden bg-white dark:bg-[#0F172A] relative border border-gray-100 dark:border-gray-800 rounded-3xl mx-2 mb-2 shadow-sm">
+    <div className="flex w-full h-[calc(100vh-140px)] lg:h-[calc(100vh-80px)] overflow-hidden bg-[#f8fafc] dark:bg-[#020617] relative border border-gray-100 dark:border-white/5 rounded-3xl mx-2 mb-2 shadow-2xl">
+      <div className="noise-bg opacity-10"></div>
       
-      {/* Sidebar - History */}
+      {/* Sidebar - History with Glassmorphism */}
       <div className={`
-        ${isSidebarOpen ? 'w-64 md:w-72 border-r' : 'w-0'} 
-        transition-all duration-500 bg-gray-50/50 dark:bg-[#1A1A2E]/50 border-gray-100 dark:border-gray-800 flex flex-col h-full overflow-hidden shrink-0
+        ${isSidebarOpen ? 'w-64 md:w-80 border-r' : 'w-0'} 
+        transition-all duration-500 bg-white/40 dark:bg-black/20 backdrop-blur-xl border-gray-100 dark:border-white/5 flex flex-col h-full overflow-hidden shrink-0 z-30
       `}>
-        <div className="p-4 border-b border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-transparent">
+        <div className="p-6 border-b border-gray-100 dark:border-white/5">
           <button 
             onClick={createNewChat}
-            className="w-full flex items-center justify-center gap-2 bg-[#1700E5] hover:bg-[#0D0066] text-white py-3 rounded-2xl font-black transition-all shadow-lg shadow-[#1700E5]/20 active:scale-95 text-sm"
+            className="w-full flex items-center justify-center gap-3 bg-[#2F00E6] hover:bg-[#1200AB] text-white py-4 rounded-2xl font-black transition-all shadow-xl shadow-[#2F00E6]/20 active:scale-95 text-sm uppercase tracking-wider"
           >
-            <Plus size={18} strokeWidth={3} /> {t('new_chat') || 'Nouveau Chat'}
+            <Plus size={20} strokeWidth={3} /> {t('new_chat')}
           </button>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
-          <p className="px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500">{t('history') || 'Historique'}</p>
+        <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+          <p className="px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{t('history')}</p>
           {sessions.map(s => (
             <div 
               key={s.id}
@@ -331,21 +332,21 @@ const OtherFeatures = () => {
                 if (window.innerWidth < 768) setIsSidebarOpen(false);
               }}
               className={`
-                group flex items-center justify-between px-3 py-3 rounded-xl cursor-pointer transition-all border
+                group flex items-center justify-between px-4 py-3.5 rounded-2xl cursor-pointer transition-all border
                 ${activeSessionId === s.id 
-                  ? 'bg-white dark:bg-[#1700E5]/10 border-[#1700E5]/20 text-[#1700E5] dark:text-blue-400 shadow-sm' 
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-white/5 hover:border-gray-100 dark:hover:border-white/5'}
+                  ? 'bg-white dark:bg-[#2F00E6] border-[#2F00E6] text-[#2F00E6] dark:text-white shadow-lg' 
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-white/5'}
               `}
             >
               <div className="flex items-center gap-3 overflow-hidden">
-                <MessageSquare size={16} className={`shrink-0 ${activeSessionId === s.id ? 'opacity-100' : 'opacity-40'}`} />
-                <span className={`truncate text-sm ${activeSessionId === s.id ? 'font-black' : 'font-medium'}`}>{s.title}</span>
+                <MessageSquare size={18} className={`shrink-0 ${activeSessionId === s.id ? 'opacity-100' : 'opacity-40'}`} />
+                <span className={`truncate text-[13px] ${activeSessionId === s.id ? 'font-black' : 'font-semibold'}`}>{s.title}</span>
               </div>
               <button 
                 onClick={(e) => deleteSession(e, s.id)}
-                className="opacity-0 group-hover:opacity-100 p-1.5 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all"
+                className={`p-1.5 rounded-lg transition-all ${activeSessionId === s.id ? 'text-white/60 hover:text-white' : 'opacity-0 group-hover:opacity-100 text-red-500 hover:bg-red-50'}`}
               >
-                <Trash2 size={14} />
+                <Trash2 size={16} />
               </button>
             </div>
           ))}
@@ -353,59 +354,86 @@ const OtherFeatures = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-full bg-white dark:bg-[#0F172A] relative">
+      <div className="flex-1 flex flex-col min-w-0 h-full relative z-10">
         
         {/* Toggle Button */}
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className={`
-            absolute left-4 top-4 p-2.5 rounded-xl transition-all z-30 shadow-sm border
+            absolute left-6 top-6 p-3 rounded-2xl transition-all z-40 shadow-xl border
             ${isSidebarOpen 
-              ? 'bg-white dark:bg-[#1A1A2E] text-gray-400 border-gray-100 dark:border-gray-800 hover:text-[#1700E5]' 
-              : 'bg-[#1700E5] text-white border-[#1700E5] hover:bg-[#0D0066]'
+              ? 'bg-white dark:bg-[#1e1b4b] text-gray-400 border-gray-100 dark:border-white/10 hover:text-[#2F00E6]' 
+              : 'bg-[#2F00E6] text-white border-[#2F00E6] hover:bg-[#1200AB]'
             }
           `}
-          title={isSidebarOpen ? "Fermer l'historique" : "Ouvrir l'historique"}
         >
-          {isSidebarOpen ? <ChevronLeft size={20} /> : <Menu size={20} />}
+          {isSidebarOpen ? <ChevronLeft size={22} strokeWidth={2.5} /> : <Menu size={22} strokeWidth={2.5} />}
         </button>
 
-        <div className="h-16 flex items-center justify-center border-b border-gray-100 dark:border-gray-800 shrink-0 px-16 relative bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-xl z-20">
-           <h2 className="text-lg font-black text-[#0D0066] dark:text-white font-['Outfit'] flex items-center gap-2">
-             <Sparkles className="text-[#1700E5] w-5 h-5" />
+        <div className="h-20 flex items-center justify-center border-b border-gray-100 dark:border-white/5 shrink-0 px-24 relative bg-white/80 dark:bg-[#020617]/80 backdrop-blur-xl z-20">
+           <h2 className="text-xl font-black text-[#0D0066] dark:text-white font-['Outfit'] flex items-center gap-3 tracking-tight">
+             <div className="p-2 bg-[#2F00E6] rounded-xl shadow-lg shadow-[#2F00E6]/20">
+               <Sparkles size={18} strokeWidth={3} className="text-white" />
+             </div>
              BRAND.AI
-             <span className="text-[10px] bg-[#1700E5]/10 text-[#1700E5] dark:text-blue-400 px-2 py-0.5 rounded-full uppercase tracking-tighter border border-[#1700E5]/20 ml-2">PRO</span>
+             <span className="text-[10px] bg-[#2F00E6]/10 text-[#2F00E6] dark:text-blue-400 px-2.5 py-1 rounded-lg uppercase tracking-tighter border border-[#2F00E6]/20 font-black">Pro Assistant</span>
            </h2>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 lg:space-y-8 scroll-smooth custom-scrollbar bg-gray-50/30 dark:bg-transparent">
-          {activeSession.messages.map((msg) => (
+        <div className="flex-1 overflow-y-auto p-6 lg:p-12 space-y-8 scroll-smooth custom-scrollbar">
+          {activeSession.messages.length === 1 && (
+            <div className="flex flex-col items-center justify-center h-full text-center max-w-2xl mx-auto opacity-80 animate-fade-in-up">
+              <div className="w-24 h-24 bg-[#2F00E6]/10 rounded-3xl flex items-center justify-center mb-8 shadow-xl border border-[#2F00E6]/10 relative">
+                <div className="absolute inset-0 bg-[#2F00E6]/20 rounded-3xl animate-pulse blur-xl"></div>
+                <Bot size={48} className="text-[#2F00E6] relative z-10" strokeWidth={1.5} />
+              </div>
+              <h1 className="text-[32px] font-black text-[#0D0066] dark:text-white mb-4 font-['Outfit'] leading-tight leading-none group-hover:scale-110 transition-transform">
+                Comment puis-je vous aider aujourd'hui ?
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 font-medium text-lg leading-relaxed mb-10">
+                Je suis votre expert en entrepreneuriat, stratégie et branding. Posez-moi n'importe quelle question pour propulser votre projet.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                {["Générer un business plan", "Analyser mon logo actuel", "Trouver un slogan", "Stratégie marketing"].map(t => (
+                  <button 
+                    key={t}
+                    onClick={() => setInput(t)}
+                    className="p-4 rounded-2xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/5 text-sm font-bold text-gray-700 dark:text-gray-300 hover:border-[#2F00E6] hover:text-[#2F00E6] transition-all text-left flex items-center justify-between group"
+                  >
+                    {t} <ChevronRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeSession.messages.map((msg, idx) => idx > 0 && (
             <div 
               key={msg.id} 
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-500`}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}
             >
-              <div className={`flex gap-3 lg:gap-4 max-w-[92%] md:max-w-[85%] lg:max-w-[75%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                <div className={`w-8 lg:w-9 h-8 lg:h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm border ${msg.role === 'user' ? 'bg-[#1700E5] text-white border-[#1700E5]' : 'bg-white dark:bg-[#1A1A2E] text-[#1700E5] border-gray-100 dark:border-gray-800'}`}>
-                  {msg.role === 'user' ? <User size={18} /> : <Bot size={18} />}
+              <div className={`flex gap-4 lg:gap-6 max-w-[95%] md:max-w-[85%] lg:max-w-[75%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-[1.2rem] flex items-center justify-center shrink-0 shadow-lg border-2 ${msg.role === 'user' ? 'bg-[#2F00E6] text-white border-white dark:border-[#020617]' : 'bg-white dark:bg-[#1e1b4b] text-[#2F00E6] border-[#2F00E6]/10'}`}>
+                  {msg.role === 'user' ? <User size={20} /> : <Bot size={20} />}
                 </div>
-                <div className="flex flex-col gap-1.5 flex-1 min-w-0 overflow-hidden">
+                <div className="flex flex-col gap-2 flex-1 min-w-0 overflow-hidden">
                   <div className={`
-                    px-4 lg:px-5 py-3 lg:py-3.5 rounded-2xl shadow-sm text-sm lg:text-base overflow-hidden break-words leading-relaxed
+                    px-6 py-4 lg:py-5 rounded-[2rem] shadow-xl text-[15px] lg:text-[16px] overflow-hidden break-words leading-relaxed
                     ${msg.role === 'user' 
-                      ? 'bg-[#1700E5] text-white rounded-tr-none' 
-                      : 'bg-white dark:bg-[#1A1A2E] text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-800 rounded-tl-none prose dark:prose-invert max-w-none prose-sm lg:prose-base'
+                      ? 'bg-gradient-to-br from-[#2F00E6] to-[#1200AB] text-white rounded-tr-none' 
+                      : 'glass-card text-gray-800 dark:text-gray-200 rounded-tl-none font-medium'
                     }
                   `}>
                     {msg.role === 'user' && msg.attachments && msg.attachments.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-3">
+                      <div className="flex flex-wrap gap-3 mb-4">
                         {msg.attachments.map((at, i) => (
-                          <div key={i} className="relative rounded-lg overflow-hidden border border-white/20 shadow-sm">
+                          <div key={i} className="relative rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl">
                             {at.type.startsWith('image/') ? (
-                              <img src={at.preview} alt="Attached" className="w-24 h-24 lg:w-32 lg:h-32 object-cover" />
+                              <img src={at.preview} alt="Attached" className="w-28 h-28 lg:w-40 lg:h-40 object-cover" />
                             ) : (
-                              <div className="w-24 h-24 lg:w-32 lg:h-32 bg-white/10 flex flex-col items-center justify-center p-2 text-center">
-                                <FileText size={24} />
-                                <span className="text-[10px] mt-1 truncate w-full">Document PDF</span>
+                              <div className="w-28 h-28 lg:w-40 lg:h-40 bg-white/10 flex flex-col items-center justify-center p-3 text-center">
+                                <FileText size={32} />
+                                <span className="text-[11px] mt-2 font-black uppercase text-white/50">PDF Doc</span>
                               </div>
                             )}
                           </div>
@@ -415,8 +443,8 @@ const OtherFeatures = () => {
                     
                     <MessageContent content={msg.content} isUser={msg.role === 'user'} />
                   </div>
-                  <span className={`text-[10px] text-gray-400 font-bold uppercase tracking-widest ${msg.role === 'user' ? 'text-right pr-2' : 'text-left pl-2'}`}>
-                    {msg.role === 'assistant' ? 'Intelligence Gemini 2.0' : 'Moi'} • {msg.timestamp}
+                  <span className={`text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] ${msg.role === 'user' ? 'text-right pr-4' : 'text-left pl-4'}`}>
+                    {msg.role === 'assistant' ? 'Intelligence Gemini — Pro' : 'Utilisateur'} • {msg.timestamp}
                   </span>
                 </div>
               </div>
@@ -425,18 +453,19 @@ const OtherFeatures = () => {
           
           {isLoading && (
             <div className="flex justify-start animate-fade-in">
-              <div className="flex gap-4 max-w-[85%]">
-                <div className="w-9 h-9 rounded-xl bg-[#1700E5]/5 flex items-center justify-center shrink-0 border border-[#1700E5]/10">
-                  <Bot size={18} className="text-[#1700E5] animate-bounce" />
+              <div className="flex gap-6 max-w-[85%]">
+                <div className="w-12 h-12 rounded-[1.2rem] glass-card flex items-center justify-center shrink-0 border-2 border-[#2F00E6]/10 relative">
+                  <div className="absolute inset-0 bg-[#2F00E6]/10 animate-ping rounded-[1.2rem]"></div>
+                  <Bot size={20} className="text-[#2F00E6]" />
                 </div>
-                <div className="bg-white dark:bg-[#1A1A2E] px-6 py-4 rounded-3xl rounded-tl-none border border-gray-100 dark:border-gray-800 flex flex-col gap-3 shadow-md">
-                   <div className="flex items-center gap-3">
-                      <div className="flex gap-1">
-                        <div className="w-1.5 h-1.5 bg-[#1700E5] rounded-full animate-bounce delay-100"></div>
-                        <div className="w-1.5 h-1.5 bg-[#1700E5] rounded-full animate-bounce delay-200"></div>
-                        <div className="w-1.5 h-1.5 bg-[#1700E5] rounded-full animate-bounce delay-300"></div>
+                <div className="glass-card px-8 py-5 rounded-[2rem] rounded-tl-none flex flex-col gap-3 shadow-2xl border border-[#2F00E6]/10">
+                   <div className="flex items-center gap-4">
+                      <div className="flex gap-1.5">
+                        <div className="w-2 h-2 bg-[#2F00E6] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-[#2F00E6] rounded-full animate-bounce" style={{ animationDelay: '200ms' }}></div>
+                        <div className="w-2 h-2 bg-[#2F00E6] rounded-full animate-bounce" style={{ animationDelay: '400ms' }}></div>
                       </div>
-                      <span className="text-[#1700E5] dark:text-blue-400 text-[10px] lg:text-xs font-black tracking-[0.1em] uppercase">Analyse stratégique...</span>
+                      <span className="text-[#2F00E6] dark:text-blue-400 text-xs font-black tracking-[0.2em] uppercase">Réseau neuronal actif...</span>
                    </div>
                 </div>
               </div>
@@ -445,27 +474,30 @@ const OtherFeatures = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="p-4 lg:p-10 bg-white dark:bg-[#0F172A] z-10">
-          <div className="max-w-4xl mx-auto relative group">
+        {/* Input Area Enhancements */}
+        <div className="p-6 lg:p-10 relative z-30">
+          <div className="max-w-5xl mx-auto relative">
+            
             {attachments.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-3 bg-gray-50 dark:bg-black/20 p-3 rounded-2xl animate-fade-in border border-gray-100 dark:border-gray-800">
+              <div className="flex flex-wrap gap-3 mb-4 glass-card p-4 rounded-[2rem] animate-fade-in-up shadow-2xl">
                 {attachments.map((at, i) => (
                   <div key={i} className="relative group/att">
                     {at.preview ? (
-                      <img src={at.preview} alt="preview" className="w-14 h-14 object-cover rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm" />
+                      <img src={at.preview} alt="preview" className="w-16 h-16 object-cover rounded-2xl border-2 border-white dark:border-[#020617] shadow-xl transition-transform hover:scale-110" />
                     ) : (
-                      <div className="w-14 h-14 bg-white dark:bg-gray-800 flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 text-[#1700E5]">
-                        <FileText size={20} />
+                      <div className="w-16 h-16 glass-card flex items-center justify-center rounded-2xl border-2 border-[#2F00E6]/20 text-[#2F00E6]">
+                        <FileText size={24} />
                       </div>
                     )}
-                    <button onClick={() => removeAttachment(i)} className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow-lg hover:bg-red-600 transition-colors">
-                      <X size={10} />
+                    <button onClick={() => removeAttachment(i)} className="absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-full shadow-xl hover:bg-red-600 transition-all hover:scale-110">
+                      <X size={12} strokeWidth={3} />
                     </button>
                   </div>
                 ))}
               </div>
             )}
-            <div className="bg-white dark:bg-[#1A1A2E] rounded-[2rem] shadow-2xl border border-gray-100 dark:border-gray-800 p-2 relative transition-all focus-within:ring-4 focus-within:ring-[#1700E5]/10">
+
+            <div className="glass-card rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.15)] dark:shadow-[0_30px_100px_rgba(0,0,0,0.4)] p-3 relative transition-all focus-within:ring-4 focus-within:ring-[#2F00E6]/10 border-2 border-white/50 dark:border-white/5">
               <form onSubmit={handleSendMessage} className="flex flex-col">
                 <textarea
                   value={input}
@@ -473,25 +505,43 @@ const OtherFeatures = () => {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); }
                   }}
-                  placeholder={t('chat_placeholder') || 'Posez votre question...'}
-                  className="w-full bg-transparent border-none focus:ring-0 py-4 px-5 lg:px-6 resize-none min-h-[60px] max-h-[200px] text-gray-800 dark:text-white custom-scrollbar text-sm lg:text-base font-medium placeholder:text-gray-400"
+                  placeholder={t('chat_placeholder')}
+                  className="w-full bg-transparent border-none focus:ring-0 py-5 px-8 resize-none min-h-[60px] max-h-[300px] text-gray-800 dark:text-white custom-scrollbar text-[16px] font-bold placeholder:text-gray-400/70"
                   rows="1"
                 />
-                <div className="flex items-center justify-between p-2">
-                  <div className="flex items-center gap-1">
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="p-3 text-gray-400 hover:text-[#1700E5] hover:bg-[#1700E5]/5 rounded-2xl transition-all">
-                      <Paperclip size={22} />
+                <div className="flex items-center justify-between px-2 pb-2">
+                  <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="p-4 text-gray-400 hover:text-[#2F00E6] hover:bg-[#2F00E6]/5 rounded-2xl transition-all group">
+                      <Paperclip size={22} className="group-hover:rotate-45 transition-transform" />
                     </button>
                     <input type="file" ref={fileInputRef} onChange={handleFileSelect} multiple accept="image/*,application/pdf" className="hidden" />
-                    <div className="h-4 w-[1px] bg-gray-100 dark:bg-gray-800 mx-3"></div>
+                    
+                    {/* Visual energy indicators */}
+                    <div className="hidden md:flex gap-1.5 px-4 h-6 items-center">
+                      {[1,2,3].map(i => (
+                        <div key={i} className="w-1 h-3 bg-[#2F00E6]/20 rounded-full animate-pulse" style={{ animationDelay: `${i*300}ms` }}></div>
+                      ))}
+                    </div>
                   </div>
-                  <button type="submit" disabled={(!input.trim() && attachments.length === 0) || isLoading} className={`p-4 rounded-2xl transition-all shadow-xl active:scale-95 ${(!input.trim() && attachments.length === 0) || isLoading ? 'bg-gray-100 dark:bg-gray-800 text-gray-300' : 'bg-[#1700E5] text-white hover:bg-[#0D0066] hover:shadow-[#1700E5]/40'}`}>
-                    {isLoading ? <Loader2 size={24} className="animate-spin" /> : <Send size={24} strokeWidth={2.5} />}
+
+                  <button 
+                    type="submit" 
+                    disabled={(!input.trim() && attachments.length === 0) || isLoading} 
+                    className={`p-5 rounded-[1.5rem] transition-all shadow-2xl active:scale-95 flex items-center gap-3 ${(!input.trim() && attachments.length === 0) || isLoading 
+                      ? 'bg-gray-100 dark:bg-white/5 text-gray-300' 
+                      : 'bg-[#2F00E6] text-white hover:bg-[#1200AB] hover:shadow-[#2F00E6]/40'}`}
+                  >
+                    {isLoading ? <Loader2 size={24} className="animate-spin" /> : (
+                      <>
+                        <span className="hidden sm:inline font-black text-xs uppercase tracking-widest pl-2">Envoyer</span>
+                        <Send size={24} strokeWidth={2.5} />
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
             </div>
-            <p className="mt-4 text-[9px] lg:text-[10px] text-center text-gray-400 font-bold uppercase tracking-[0.2em] opacity-50">BRAND.AI • Pro Power Intelligence</p>
+            <p className="mt-6 text-[10px] text-center text-gray-400 font-black uppercase tracking-[0.3em] opacity-40">Intelligence Artificielle • Binôme 35 • TECHNOVA</p>
           </div>
         </div>
       </div>

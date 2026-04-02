@@ -65,38 +65,53 @@ const Settings = () => {
   ];
 
   return (
-    <div className="w-full max-w-[800px] mx-auto animate-fade-in-up lg:px-10 pb-20 pt-8 transition-colors duration-300">
+    <div className="w-full max-w-[900px] mx-auto lg:px-10 pb-20 pt-10 transition-all duration-300 relative">
+      <div className="noise-bg opacity-10"></div>
+      
+      {/* Animated Glow Orbs */}
+      <div className="absolute top-[-5%] left-[-10%] w-[40%] h-[40%] bg-[#2F00E6]/5 rounded-full blur-[100px] animate-pulse-glow"></div>
+      <div className="absolute bottom-[10%] right-[-5%] w-[35%] h-[35%] bg-[#5CA8FF]/5 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDelay: '-3s' }}></div>
 
-      <div className="mb-8 border-b border-gray-100 dark:border-gray-800 pb-6">
-        <h1 className="text-3xl lg:text-4xl font-black text-[#0D0066] dark:text-white font-['Outfit'] tracking-tight">{t('settings')}</h1>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">{t('settings_desc')}</p>
+      <div className="mb-12 border-b border-gray-100 dark:border-white/5 pb-8 animate-fade-in-up">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2F00E6]/5 border border-[#2F00E6]/10 mb-4">
+          <Sparkles className="w-3 h-3 text-[#2F00E6]" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#2F00E6]">Configuration</span>
+        </div>
+        <h1 className="text-4xl lg:text-5xl font-black text-[#0D0066] dark:text-white font-['Outfit'] tracking-tight">{t('settings')}</h1>
+        <p className="text-gray-500 dark:text-gray-400 font-bold mt-2">{t('settings_desc')}</p>
       </div>
 
-      <div className="flex flex-col gap-6">
-        {settingsSections.map((section) => (
-          <div key={section.title} className="bg-white dark:bg-[#1A1A2E] rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden transition-all hover:shadow-md">
-            <h2 className="text-[10px] font-black text-[#1700E5] dark:text-blue-400 uppercase tracking-[0.2em] px-8 pt-6 pb-2 opacity-80">
+      <div className="flex flex-col gap-8 relative z-10">
+        {settingsSections.map((section, idx) => (
+          <div 
+            key={section.title} 
+            className="glass-card rounded-[2.5rem] shadow-xl overflow-hidden animate-fade-in-up border border-white/50 dark:border-white/5"
+            style={{ animationDelay: `${idx * 0.1}s` }}
+          >
+            <h2 className="text-[11px] font-black text-[#2F00E6] dark:text-blue-400 uppercase tracking-[0.3em] px-10 pt-8 pb-3 opacity-60">
               {section.title}
             </h2>
-            <div className="divide-y divide-gray-50 dark:divide-gray-800">
+            <div className="divide-y divide-gray-100/30 dark:divide-white/5">
               {section.items.map((item) => (
                 <div
                   key={item.id}
                   onClick={item.onClick}
-                  className={`flex items-center justify-between px-8 py-5 hover:bg-gray-50 dark:hover:bg-white/5 transition-all ${item.onClick ? 'cursor-pointer group' : 'cursor-default'}`}
+                  className={`flex items-center justify-between px-10 py-6 hover:bg-[#2F00E6]/5 transition-all ${item.onClick ? 'cursor-pointer group' : 'cursor-default'}`}
                 >
-                  <div className="flex items-center gap-5">
-                    <div className="w-10 h-10 bg-[#1700E5]/5 dark:bg-[#1700E5]/10 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110">
-                      <item.icon className="w-5 h-5 text-[#1700E5] dark:text-blue-400" />
+                  <div className="flex items-center gap-6">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${item.onClick ? 'bg-[#2F00E6]/10 group-hover:bg-[#2F00E6] group-hover:text-white group-hover:rotate-[10deg]' : 'bg-gray-100 dark:bg-white/5'}`}>
+                      <item.icon className={`w-5 h-5 ${item.onClick ? 'text-[#2F00E6] group-hover:text-white' : 'text-gray-400'}`} strokeWidth={2.5} />
                     </div>
                     <div className="flex flex-col">
-                      <span className="font-bold text-gray-800 dark:text-gray-100 text-sm">{item.label}</span>
-                      {item.onClick && <span className="text-[10px] text-[#1700E5] dark:text-blue-400 font-medium opacity-60">Modifier</span>}
+                      <span className="font-black text-[#0D0066] dark:text-gray-100 text-[15px]">{item.label}</span>
+                      {item.onClick && <span className="text-[10px] text-[#2F00E6] font-black uppercase tracking-widest mt-1 opacity-0 group-hover:opacity-100 transition-opacity">Modifier</span>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 text-gray-400">
-                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">{item.value}</span>
-                    {item.onClick && <ChevronRight className="w-4 h-4 text-[#1700E5]/40 group-hover:translate-x-1 transition-transform" />}
+                  <div className="flex items-center gap-4">
+                    <div className="bg-[#2F00E6]/5 dark:bg-white/5 px-4 py-2 rounded-xl border border-[#2F00E6]/10">
+                      <span className="text-xs font-black text-[#2F00E6] dark:text-blue-400 uppercase tracking-tighter">{item.value}</span>
+                    </div>
+                    {item.onClick && <ChevronRight className="w-5 h-5 text-[#2F00E6]/40 group-hover:translate-x-1 transition-transform" />}
                   </div>
                 </div>
               ))}
@@ -104,20 +119,30 @@ const Settings = () => {
           </div>
         ))}
 
-        <div className="mt-8 p-6 bg-[#1700E5] rounded-3xl text-white shadow-xl shadow-[#1700E5]/20 relative overflow-hidden group">
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-             <div>
-               <h3 className="text-xl font-black font-['Outfit']">BRAND.AI - Next Gen Assistant</h3>
-               <p className="text-white/70 text-sm mt-1">Propulsé par Google Gemini 2.0 Flash</p>
+        {/* Project Card Overlay */}
+        <div className="mt-12 p-10 bg-gradient-to-br from-[#2F00E6] via-[#1200AB] to-[#0A0066] rounded-[3rem] text-white shadow-[0_30px_100px_rgba(47,0,230,0.3)] relative overflow-hidden group animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+          <div className="noise-bg opacity-20"></div>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+             <div className="space-y-3">
+               <div className="w-16 h-1 bg-white/30 rounded-full"></div>
+                <h3 className="text-3xl font-black font-['Outfit'] tracking-tight">BRAND.AI <span className="opacity-40 text-lg ml-2 font-black">v2.1.0</span></h3>
+                <p className="text-white/70 font-bold text-lg">L'excellence de l'intelligence stratégique pour entrepreneurs de demain.</p>
              </div>
-             <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/10 uppercase tracking-widest text-[10px] font-bold">
-               <Sparkles size={14} className="animate-pulse" /> Finaliste Tech Nova
+             <div className="flex flex-col items-end gap-3">
+               <div className="flex items-center gap-3 bg-white text-[#2F00E6] px-6 py-3 rounded-2xl shadow-2xl font-black tracking-widest text-[11px] uppercase transition-transform hover:scale-105">
+                 <Sparkles size={16} fill="#2F00E6" /> TECH NOVA 2026
+               </div>
+               <span className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em]">Binôme 35 • HackNova</span>
              </div>
           </div>
-          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
+          {/* Decorative background shape */}
+          <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-white/10 rounded-full blur-[100px] group-hover:bg-white/20 transition-all duration-1000"></div>
         </div>
 
-        <p className="text-center text-[10px] text-gray-400 mt-8 font-bold uppercase tracking-[0.2em]">{t('version')} 2.1.0 • Stable Build</p>
+        <div className="mt-16 flex flex-col items-center gap-4 opacity-40">
+           <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.5em]">Stable Build • Next-Gen Framework</p>
+           <div className="h-1 w-20 bg-gray-200 dark:bg-white/10 rounded-full"></div>
+        </div>
       </div>
     </div>
   );
