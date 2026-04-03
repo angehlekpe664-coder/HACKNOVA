@@ -305,7 +305,7 @@ const OtherFeatures = () => {
   };
 
   return (
-    <div className="flex w-full h-[calc(100vh-140px)] lg:h-[calc(100vh-80px)] overflow-hidden bg-[#f8fafc] dark:bg-[#020617] relative border border-gray-100 dark:border-white/5 rounded-3xl mx-2 mb-2 shadow-2xl">
+    <div className="flex w-full h-[calc(100vh-92px)] lg:h-[calc(100vh-48px)] overflow-hidden bg-[#f8fafc] dark:bg-[#020617] relative border border-gray-100 dark:border-white/5 rounded-3xl mx-2 mb-2 shadow-2xl">
       <div className="noise-bg opacity-10"></div>
       
       {/* Sidebar - History with Glassmorphism */}
@@ -354,33 +354,33 @@ const OtherFeatures = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-full relative z-10">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 h-full relative z-10">
         
         {/* Toggle Button */}
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className={`
-            absolute left-6 top-6 p-3 rounded-2xl transition-all z-40 shadow-xl border
+            absolute left-4 top-4 p-2 rounded-lg transition-all z-40 shadow-md border
             ${isSidebarOpen 
               ? 'bg-white dark:bg-[#1e1b4b] text-gray-400 border-gray-100 dark:border-white/10 hover:text-[#2F00E6]' 
               : 'bg-[#2F00E6] text-white border-[#2F00E6] hover:bg-[#1200AB]'
             }
           `}
         >
-          {isSidebarOpen ? <ChevronLeft size={22} strokeWidth={2.5} /> : <Menu size={22} strokeWidth={2.5} />}
+          {isSidebarOpen ? <ChevronLeft size={18} strokeWidth={2.5} /> : <Menu size={18} strokeWidth={2.5} />}
         </button>
 
-        <div className="h-20 flex items-center justify-center border-b border-gray-100 dark:border-white/5 shrink-0 px-24 relative bg-white/80 dark:bg-[#020617]/80 backdrop-blur-xl z-20">
-           <h2 className="text-xl font-black text-[#0D0066] dark:text-white font-['Outfit'] flex items-center gap-3 tracking-tight">
-             <div className="p-2 bg-[#2F00E6] rounded-xl shadow-lg shadow-[#2F00E6]/20">
-               <Sparkles size={18} strokeWidth={3} className="text-white" />
-             </div>
-             BRAND.AI
-             <span className="text-[10px] bg-[#2F00E6]/10 text-[#2F00E6] dark:text-blue-400 px-2.5 py-1 rounded-lg uppercase tracking-tighter border border-[#2F00E6]/20 font-black">Pro Assistant</span>
-           </h2>
-        </div>
+        <div className="h-16 lg:h-18 flex items-center justify-center border-b border-gray-100 dark:border-white/5 shrink-0 px-16 lg:px-20 relative bg-white/80 dark:bg-[#020617]/80 backdrop-blur-xl z-20">
+           <h2 className="text-lg lg:text-xl font-black text-[#0D0066] dark:text-white font-['Outfit'] flex items-center gap-2 tracking-tight">
+              <div className="p-1 bg-[#2F00E6] rounded-lg shadow-lg shadow-[#2F00E6]/20">
+                <Sparkles size={14} strokeWidth={3} className="text-white lg:w-[16px] lg:h-[16px]" />
+              </div>
+              BRAND.AI
+              <span className="text-[8px] lg:text-[9px] bg-[#2F00E6]/10 text-[#2F00E6] dark:text-blue-400 px-1.5 py-0.5 rounded-lg uppercase tracking-tighter border border-[#2F00E6]/20 font-black">Pro Assistant</span>
+            </h2>
+         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 lg:p-12 space-y-8 scroll-smooth custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 lg:p-12 space-y-6 scroll-smooth custom-scrollbar">
           {activeSession.messages.length === 1 && (
             <div className="flex flex-col items-center justify-center h-full text-center max-w-2xl mx-auto opacity-80 animate-fade-in-up">
               <div className="w-24 h-24 bg-[#2F00E6]/10 rounded-3xl flex items-center justify-center mb-8 shadow-xl border border-[#2F00E6]/10 relative">
@@ -412,13 +412,13 @@ const OtherFeatures = () => {
               key={msg.id} 
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}
             >
-              <div className={`flex gap-4 lg:gap-6 max-w-[95%] md:max-w-[85%] lg:max-w-[75%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              <div className={`flex gap-4 lg:gap-6 w-full max-w-[100%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                 <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-[1.2rem] flex items-center justify-center shrink-0 shadow-lg border-2 ${msg.role === 'user' ? 'bg-[#2F00E6] text-white border-white dark:border-[#020617]' : 'bg-white dark:bg-[#1e1b4b] text-[#2F00E6] border-[#2F00E6]/10'}`}>
                   {msg.role === 'user' ? <User size={20} /> : <Bot size={20} />}
                 </div>
                 <div className="flex flex-col gap-2 flex-1 min-w-0 overflow-hidden">
                   <div className={`
-                    px-6 py-4 lg:py-5 rounded-[2rem] shadow-xl text-[15px] lg:text-[16px] overflow-hidden break-words leading-relaxed
+                    px-5 py-4 lg:py-5 rounded-[2rem] shadow-xl text-[15px] lg:text-[16px] overflow-hidden break-words leading-relaxed w-full
                     ${msg.role === 'user' 
                       ? 'bg-gradient-to-br from-[#2F00E6] to-[#1200AB] text-white rounded-tr-none' 
                       : 'glass-card text-gray-800 dark:text-gray-200 rounded-tl-none font-medium'
@@ -475,8 +475,8 @@ const OtherFeatures = () => {
         </div>
 
         {/* Input Area Enhancements */}
-        <div className="p-6 lg:p-10 relative z-30">
-          <div className="max-w-5xl mx-auto relative">
+        <div className="px-4 pt-6 pb-4 lg:px-6 lg:pt-8 lg:pb-6 relative z-30">
+          <div className="max-w-4xl mx-auto relative">
             
             {attachments.length > 0 && (
               <div className="flex flex-wrap gap-3 mb-4 glass-card p-4 rounded-[2rem] animate-fade-in-up shadow-2xl">
@@ -497,7 +497,7 @@ const OtherFeatures = () => {
               </div>
             )}
 
-            <div className="glass-card rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.15)] dark:shadow-[0_30px_100px_rgba(0,0,0,0.4)] p-3 relative transition-all focus-within:ring-4 focus-within:ring-[#2F00E6]/10 border-2 border-white/50 dark:border-white/5">
+            <div className="glass-card rounded-[1.5rem] shadow-[0_16px_40px_rgba(0,0,0,0.10)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.30)] p-2 relative transition-all focus-within:ring-4 focus-within:ring-[#2F00E6]/10 border-2 border-white/50 dark:border-white/5">
               <form onSubmit={handleSendMessage} className="flex flex-col">
                 <textarea
                   value={input}
@@ -506,7 +506,7 @@ const OtherFeatures = () => {
                     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); }
                   }}
                   placeholder={t('chat_placeholder')}
-                  className="w-full bg-transparent border-none focus:ring-0 py-5 px-8 resize-none min-h-[60px] max-h-[300px] text-gray-800 dark:text-white custom-scrollbar text-[16px] font-bold placeholder:text-gray-400/70"
+                  className="w-full bg-transparent border-none focus:ring-0 py-2.5 px-6 resize-none min-h-[40px] max-h-[110px] text-gray-800 dark:text-white custom-scrollbar text-[16px] font-bold placeholder:text-gray-400/70"
                   rows="1"
                 />
                 <div className="flex items-center justify-between px-2 pb-2">
@@ -517,7 +517,7 @@ const OtherFeatures = () => {
                     <input type="file" ref={fileInputRef} onChange={handleFileSelect} multiple accept="image/*,application/pdf" className="hidden" />
                     
                     {/* Visual energy indicators */}
-                    <div className="hidden md:flex gap-1.5 px-4 h-6 items-center">
+                    <div className="hidden md:flex gap-1.5 px-3 h-6 items-center">
                       {[1,2,3].map(i => (
                         <div key={i} className="w-1 h-3 bg-[#2F00E6]/20 rounded-full animate-pulse" style={{ animationDelay: `${i*300}ms` }}></div>
                       ))}
@@ -527,14 +527,14 @@ const OtherFeatures = () => {
                   <button 
                     type="submit" 
                     disabled={(!input.trim() && attachments.length === 0) || isLoading} 
-                    className={`p-5 rounded-[1.5rem] transition-all shadow-2xl active:scale-95 flex items-center gap-3 ${(!input.trim() && attachments.length === 0) || isLoading 
+                    className={`p-4 rounded-[1.25rem] transition-all shadow-2xl active:scale-95 flex items-center gap-3 ${(!input.trim() && attachments.length === 0) || isLoading 
                       ? 'bg-gray-100 dark:bg-white/5 text-gray-300' 
                       : 'bg-[#2F00E6] text-white hover:bg-[#1200AB] hover:shadow-[#2F00E6]/40'}`}
                   >
                     {isLoading ? <Loader2 size={24} className="animate-spin" /> : (
                       <>
-                        <span className="hidden sm:inline font-black text-xs uppercase tracking-widest pl-2">Envoyer</span>
-                        <Send size={24} strokeWidth={2.5} />
+                        <span className="hidden sm:inline font-black text-[11px] uppercase tracking-widest pl-2">Envoyer</span>
+                        <Send size={22} strokeWidth={2.5} />
                       </>
                     )}
                   </button>

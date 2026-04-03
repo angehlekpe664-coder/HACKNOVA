@@ -158,8 +158,8 @@ def generate_brand_identity_with_gemini(brand_name: str, industry: str):
     Ne génère aucun code SVG ni aucun texte en dehors du JSON. Sois précis et technique dans tes prompts anglais pour l'IA d'image.
     """
     
-    # Tentative avec Gemini 2.0 (plus intelligent) avec repli sur 1.5-flash
-    target_model = 'gemini-2.0-flash'
+    # Tentative avec Gemini 2.5 (plus intelligent) avec repli sur flash-lite / pro
+    target_model = 'gemini-2.5-flash'
     try:
         response = client.models.generate_content(
             model=target_model,
@@ -167,17 +167,17 @@ def generate_brand_identity_with_gemini(brand_name: str, industry: str):
             config=types.GenerateContentConfig(response_mime_type='application/json'),
         )
     except Exception as e:
-        print(f"--- QUOTA 2.0 ATTEINT ({e}), REPLI SUR 1.5-FLASH ---")
+        print(f"--- QUOTA 2.5 ATTEINT ({e}), REPLI SUR 2.5-FLASH-LITE ---")
         try:
             response = client.models.generate_content(
-                model='gemini-1.5-flash',
+                model='gemini-2.5-flash-lite',
                 contents=prompt,
                 config=types.GenerateContentConfig(response_mime_type='application/json'),
             )
         except Exception as e2:
-            print(f"Échec 1.5: {e2}. Repli sur gemini-1.5-pro.")
+            print(f"Échec flash-lite: {e2}. Repli sur gemini-2.5-pro.")
             response = client.models.generate_content(
-                model='gemini-1.5-pro',
+                model='gemini-2.5-pro',
                 contents=prompt,
                 config=types.GenerateContentConfig(response_mime_type='application/json'),
             )
@@ -235,7 +235,10 @@ def generate_brand(request: BrandRequest, user = Depends(verify_token)):
             if ai_data and ai_data.get("logo_prompts") and len(ai_data.get("logo_prompts")) > 0:
                 logo_prompt = ai_data.get("logo_prompts")[0]
 
-            NANOBANANA_KEY = "sk-c9767427a0a645b290e6701c5dd654cc"
+            NANOBANANA_KEY = os.getenv("NANOBANANA_API_KEY")
+            if not NANOBANANA_KEY:
+                     raise RuntimeError("NANOBANANA_API_KEY doit être défini dans le fichier .env")
+
             print(f"Tentative Nano Banana API (lui ou rien) avec le prompt: {logo_prompt}")
             
             headers = {
@@ -377,11 +380,9 @@ def entrepreneur_chat(request: ChatRequest, user = Depends(verify_token)):
 
     # Ordre : du plus capable au plus disponible (quota croissant)
     MODELS = [
-        'gemini-2.0-flash',        # 20 req/jour - le meilleur
-        'gemini-2.0-flash-lite',   # 1500 req/jour - très disponible
-        'gemini-1.5-flash',        # Très rapide, quota élevé
-        'gemini-1.5-flash-8b',     # Ultra léger
-        'gemini-1.5-pro',          # Très capable
+        'gemini-2.5-flash',        # Meilleur équilibre qualité / vitesse
+        'gemini-2.5-flash-lite',   # Très disponible et plus léger
+        'gemini-2.5-pro',          # Plus capable pour les requêtes complexes
     ]
     
     for model_name in MODELS:

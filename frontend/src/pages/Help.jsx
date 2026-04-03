@@ -83,11 +83,11 @@ const Help = () => {
               {t('contact_desc')}
             </p>
             <a 
-              href="mailto:support@brand.ai" 
-              className="group relative h-14 w-full bg-[#0D0066] text-white flex items-center justify-center rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-black transition-all shadow-[0_15px_30px_rgba(0,0,0,0.2)] overflow-hidden"
+              href="mailto:emmanuelthg39@gmail.com" 
+              className="group relative h-14 w-full bg-[#0D0066] text-white flex items-center justify-center rounded-2xl font-black normal-case text-[10px] sm:text-[11px] md:text-[12px] leading-none tracking-normal hover:bg-black transition-all shadow-[0_15px_30px_rgba(0,0,0,0.2)] overflow-hidden px-2 sm:px-3"
             >
               <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:animate-[shimmer_1.5s_infinite]"></div>
-              <span className="relative z-10">support@brand.ai</span>
+              <span className="relative z-10 whitespace-nowrap text-center">emmanuelthg39@gmail.com</span>
             </a>
           </div>
 
