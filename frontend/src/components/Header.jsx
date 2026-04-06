@@ -8,8 +8,8 @@ import { useTheme } from '../contexts/ThemeContext';
 const Header = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const { t } = useLanguage();
-  const { theme } = useTheme();
+  const { t, language, setLanguage } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -56,8 +56,25 @@ const Header = ({ onMenuClick }) => {
         </button>
       </div>
       
-      {/* Auth Section */}
-      <div className="flex items-center gap-6">
+      {/* Controls & Auth Section */}
+      <div className="flex items-center gap-4 lg:gap-6">
+        {/* Theme & Language Toggles */}
+        <div className="hidden sm:flex items-center gap-2 bg-white/50 dark:bg-white/5 p-1.5 rounded-2xl border border-white dark:border-white/10">
+          <button 
+            onClick={() => setLanguage(l => l === 'fr' ? 'en' : 'fr')}
+            className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-[11px] hover:bg-white dark:hover:bg-white/10 transition-all text-[#2F00E6] dark:text-blue-400"
+          >
+            {language.toUpperCase()}
+          </button>
+          <div className="w-px h-4 bg-gray-200 dark:bg-white/10"></div>
+          <button 
+            onClick={toggleTheme}
+            className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-white dark:hover:bg-white/10 transition-all text-[#2F00E6] dark:text-blue-400"
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+        </div>
+
         <div 
           className="flex items-center gap-3 cursor-pointer group bg-white/50 dark:bg-white/5 px-5 py-3 rounded-2xl border border-white dark:border-white/10 hover:bg-[#2F00E6]/5 transition-all"
           onClick={handleAuthClick}

@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Download, Bookmark, Sparkles, Loader2 } from 'lucide-react';
+import { Download, Bookmark, Sparkles, Loader2, FileText, Printer } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import BrandBoard from '../components/BrandBoard';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 const BrandResults = () => {
   const [data, setData] = useState(null);
@@ -11,29 +14,60 @@ const BrandResults = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { theme } = useTheme();
+  const boardRef = React.useRef(null);
+  const isSavingRef = React.useRef(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('brandResult');
     if (saved) {
-      const parsedData = JSON.parse(saved);
+      let parsedData = JSON.parse(saved);
+      
+      // Fix format for older logos that were just an array of strings
+      let logos = parsedData.logos;
+      try {
+        if (typeof logos === 'string') logos = JSON.parse(logos);
+      } catch(e) {
+        if (typeof logos === 'string') logos = [logos];
+      }
+      if (logos && Array.isArray(logos) && logos.length > 0) {
+        parsedData.logos = logos.map((logo, index) => {
+          if (typeof logo === 'string') {
+            return { id: index + 1, url: logo };
+          }
+          return logo;
+        });
+      } else {
+        parsedData.logos = [];
+      }
+      
       setData(parsedData);
       
-      try {
-        let history = [];
-        const rawHistory = localStorage.getItem('brandHistory');
-        if (rawHistory) {
-          history = JSON.parse(rawHistory);
-          if (!Array.isArray(history)) history = [];
+      // Enregistrement uniquement local (Pas de base de données)
+      const appendToLocalHistory = (brandData) => {
+        try {
+           let historyObj = localStorage.getItem('brandHistoryArray');
+           let historyArr = historyObj ? JSON.parse(historyObj) : [];
+           historyArr = historyArr.filter(item => item.slogan !== brandData.slogan);
+           historyArr.unshift({...brandData, created_at: new Date().toISOString()});
+           let success = false;
+           while (!success && historyArr.length > 0) {
+              try {
+                  localStorage.setItem('brandHistoryArray', JSON.stringify(historyArr));
+                  success = true;
+              } catch (e) {
+                  historyArr.pop();
+              }
+           }
+        } catch(e) {}
+      };
+      
+      if (!isSavingRef.current) {
+        isSavingRef.current = true;
+        const lastSavedSlogan = sessionStorage.getItem('lastSavedSlogan');
+        if (lastSavedSlogan !== parsedData.slogan) {
+           appendToLocalHistory(parsedData);
+           sessionStorage.setItem('lastSavedSlogan', parsedData.slogan);
         }
-        
-        const isAlreadyInHistory = history.find(h => h && h.slogan && h.slogan === parsedData.slogan);
-        if (!isAlreadyInHistory && parsedData.slogan) {
-          history.unshift({ ...parsedData, date: new Date().toISOString() });
-          localStorage.setItem('brandHistory', JSON.stringify(history));
-        }
-      } catch(e) {
-        console.error("Format d'historique invalide, réinitialisation", e);
-        localStorage.setItem('brandHistory', JSON.stringify([{ ...parsedData, date: new Date().toISOString() }]));
       }
     } else {
       navigate('/generate');
@@ -87,7 +121,8 @@ const BrandResults = () => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `brand_kit_${(data.brand_name || "ma_marque").toLowerCase().replace(/\s+/g, '_')}.zip`;
+        const brandNameSafe = (data?.brand_name || data?.name || "ma_marque").toLowerCase().replace(/\s+/g, '_');
+        a.download = `brand_kit_${brandNameSafe}.zip`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -98,6 +133,44 @@ const BrandResults = () => {
     } catch (err) {
       console.error('ZIP Download failed:', err);
       alert(t('download_error') || "Une erreur est survenue lors du téléchargement.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!boardRef.current) return;
+    try {
+      setIsDownloading(true);
+
+      if (!data.logos || data.logos.length === 0) {
+        alert(t('no_logo_found') || "Logo non disponible pour l'export.");
+        return;
+      }
+      
+      // Temporary style to ensure it's visible for capture but off-screen
+      const element = boardRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 2, // Higher resolution
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height]
+      });
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      const brandNameSafe = (data?.brand_name || data?.name || "ma_marque").toLowerCase().replace(/\s+/g, '_');
+      pdf.save(`brand_board_${brandNameSafe}.pdf`);
+      
+    } catch (err) {
+      console.error('PDF Export failed:', err);
+      alert(`${t('pdf_error') || "Erreur lors de l'export PDF."}\n\nDétails: ${err.message || 'Capture impossible'}`);
     } finally {
       setIsDownloading(false);
     }
@@ -123,30 +196,45 @@ const BrandResults = () => {
       <div className="absolute top-[-5%] left-[-10%] w-[30%] h-[30%] bg-[#2F00E6]/5 rounded-full blur-[100px] animate-pulse-glow"></div>
       <div className="absolute bottom-[20%] right-[-5%] w-[35%] h-[35%] bg-[#5CA8FF]/5 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDelay: '-3s' }}></div>
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 border-b border-gray-100 dark:border-white/5 pb-8 gap-6 animate-fade-in-up">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 border-b border-gray-100 dark:border-white/5 pb-8 gap-6 animate-fade-in-up">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2F00E6]/5 border border-[#2F00E6]/10 mb-2">
             <Sparkles className="w-3 h-3 text-[#2F00E6]" />
             <span className="text-[10px] font-black uppercase tracking-widest text-[#2F00E6]">Intelligence Artificielle</span>
           </div>
-          <h1 className="text-4xl lg:text-5xl font-black text-[#0D0066] dark:text-white font-['Outfit'] tracking-tight">{t('results_title')}</h1>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#0D0066] dark:text-white font-['Outfit'] tracking-tight">{t('results_title')}</h1>
           <p className="text-gray-500 dark:text-gray-400 font-bold">{t('results_subtitle')}</p>
         </div>
-        <div className="flex items-center gap-4 w-full md:w-auto">
+        <div className="grid grid-cols-2 md:flex md:flex-row md:items-center gap-3 w-full md:w-auto">
+          <button 
+            onClick={handleDownloadPDF}
+            disabled={isDownloading}
+            className="group relative flex items-center justify-center gap-2 md:gap-3 bg-white dark:bg-white/10 text-[#0D0066] dark:text-white px-2 py-3 md:px-8 md:py-4 rounded-2xl font-black hover:bg-gray-50 dark:hover:bg-white/20 transition-all shadow-xl active:scale-95 disabled:opacity-50 border border-gray-100 dark:border-white/10 text-xs md:text-base text-center"
+          >
+            <FileText className="w-4 h-4 md:w-5 md:h-5 text-[#2F00E6]" /> 
+            <span>{isDownloading ? t('preparing') : 'Brand Board'}</span>
+          </button>
           <button 
             onClick={handleDownloadZip}
             disabled={isDownloading}
-            className="group relative flex-1 md:flex-none flex items-center justify-center gap-3 bg-[#2F00E6] text-white px-8 py-4 rounded-2xl font-black hover:bg-[#1200AB] transition-all shadow-[0_20px_50px_rgba(47,0,230,0.25)] active:scale-95 disabled:opacity-50 overflow-hidden"
+            className="group relative flex items-center justify-center gap-2 md:gap-3 bg-[#2F00E6] text-white px-2 py-3 md:px-8 md:py-4 rounded-2xl font-black hover:bg-[#1200AB] transition-all shadow-[0_20px_50px_rgba(47,0,230,0.25)] active:scale-95 disabled:opacity-50 overflow-hidden text-xs md:text-base text-center"
           >
             <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]"></div>
-            <Download className="w-5 h-5 relative z-10" /> 
+            <Download className="w-4 h-4 md:w-5 md:h-5 relative z-10" /> 
             <span className="relative z-10">{isDownloading ? t('preparing') : t('download_kit')}</span>
           </button>
           <button 
-            onClick={() => navigate('/history')}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 text-[#2F00E6] dark:text-blue-400 bg-[#2F00E6]/5 dark:bg-blue-400/5 px-6 py-4 rounded-2xl font-black hover:bg-[#2F00E6]/10 transition-all border border-[#2F00E6]/10 uppercase tracking-widest text-[11px]"
+            onClick={() => window.print()}
+            className="flex items-center justify-center gap-1 md:gap-2 text-gray-400 bg-white/50 dark:bg-white/5 px-2 py-3 md:px-6 md:py-4 rounded-2xl font-black hover:bg-white dark:hover:bg-white/10 transition-all border border-gray-100 dark:border-white/10 uppercase tracking-widest text-[9px] md:text-[11px]"
+            title="Imprimer ou Sauvegarder en PDF"
           >
-            <Bookmark className="w-4 h-4" /> {t('view_history')}
+            <Printer className="w-3 h-3 md:w-4 md:h-4" /> {t('print') || 'PDF'}
+          </button>
+          <button 
+            onClick={() => navigate('/history')}
+            className="flex items-center justify-center gap-1 md:gap-2 text-[#2F00E6] dark:text-blue-400 bg-[#2F00E6]/5 dark:bg-blue-400/5 px-2 py-3 md:px-6 md:py-4 rounded-2xl font-black hover:bg-[#2F00E6]/10 transition-all border border-[#2F00E6]/10 uppercase tracking-widest text-[9px] md:text-[11px]"
+          >
+            <Bookmark className="w-3 h-3 md:w-4 md:h-4" /> {t('view_history')}
           </button>
         </div>
       </div>
@@ -249,7 +337,7 @@ const BrandResults = () => {
              <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-[80px] group-hover:scale-150 transition-transform duration-1000"></div>
              
              <h3 className="text-white text-3xl lg:text-5xl font-black leading-none text-center max-w-2xl relative z-10 drop-shadow-[0_10px_30px_rgba(0,0,0,0.3)] font-['Outfit'] tracking-tighter">
-               "{data.slogan}"
+               "{data?.slogan || "Global Strategy"}"
              </h3>
              
              <div className="absolute bottom-8 right-10 opacity-20">
@@ -258,6 +346,89 @@ const BrandResults = () => {
           </div>
         </div>
 
+      </div>
+      <div className="mt-12 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+        <h2 className="text-2xl font-black text-[#0D0066] dark:text-white mb-8 font-['Outfit'] flex items-center gap-3">
+          <Sparkles className="w-6 h-6 text-[#2F00E6]" />
+          Social Media Pack
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Instagram Post Mockup */}
+          <div className="glass-card p-6 rounded-[2.5rem] border border-white/20 shadow-xl group hover:-translate-y-2 transition-all duration-500">
+            <div className="aspect-square bg-gray-50 dark:bg-black/20 rounded-2xl mb-6 overflow-hidden relative flex items-center justify-center border border-gray-100 dark:border-white/5">
+              <div className="absolute top-4 left-4 flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full border-2 border-[#2F00E6] p-0.5">
+                   <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
+                      <img src={data.logos?.[0]?.url} alt="Profile" className="w-[70%] h-[70%] object-contain" />
+                   </div>
+                </div>
+                <span className="text-[10px] font-black uppercase text-gray-400">@{(data.brand_name || data.name || "brand").toLowerCase().replace(/\s+/g, '')}</span>
+              </div>
+              <img src={data.logos?.[0]?.url} alt="Instagram Post" className="w-[60%] h-[60%] object-contain drop-shadow-2xl group-hover:scale-110 transition-transform duration-700" />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Instagram Square</span>
+              <button 
+                onClick={() => handleDownloadLogo(data.logos?.[0]?.url)} 
+                className="p-2 bg-[#2F00E6]/5 hover:bg-[#2F00E6] text-[#2F00E6] hover:text-white rounded-xl transition-all"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Twitter / X Mockup */}
+          <div className="glass-card p-6 rounded-[2.5rem] border border-white/20 shadow-xl group hover:-translate-y-2 transition-all duration-500">
+            <div className="aspect-[16/9] bg-gray-50 dark:bg-black/20 rounded-2xl mb-6 overflow-hidden relative flex flex-col border border-gray-100 dark:border-white/5">
+              <div className="h-[60%] w-full" style={{ backgroundColor: data.colors?.primary }}></div>
+              <div className="flex-1 bg-white dark:bg-gray-900 p-4 relative">
+                <div className="absolute -top-8 left-4 w-16 h-16 rounded-full border-4 border-white dark:border-gray-900 bg-white flex items-center justify-center overflow-hidden shadow-lg">
+                  <img src={data.logos?.[0]?.url} alt="Profile X" className="w-[70%] h-[70%] object-contain" />
+                </div>
+                <div className="mt-8">
+                  <div className="h-2 w-24 bg-gray-100 dark:bg-white/10 rounded-full mb-2"></div>
+                  <div className="h-1.5 w-16 bg-gray-50 dark:bg-white/5 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">X / Twitter Pack</span>
+              <button 
+                onClick={() => handleDownloadLogo(data.logos?.[0]?.url)} 
+                className="p-2 bg-[#2F00E6]/5 hover:bg-[#2F00E6] text-[#2F00E6] hover:text-white rounded-xl transition-all"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* LinkedIn Mockup */}
+          <div className="glass-card p-6 rounded-[2.5rem] border border-white/20 shadow-xl group hover:-translate-y-2 transition-all duration-500">
+            <div className="aspect-[1.91/1] bg-gray-50 dark:bg-black/20 rounded-2xl mb-6 overflow-hidden relative border border-gray-100 dark:border-white/5 flex items-center justify-center">
+               <div className="w-full h-full opacity-10 absolute" style={{ 
+                 backgroundImage: `radial-gradient(circle at 2px 2px, ${data.colors?.primary} 1px, transparent 0)`,
+                 backgroundSize: '20px 20px'
+               }}></div>
+               <div className="bg-white p-6 rounded-2xl shadow-2xl relative z-10 scale-75 group-hover:scale-90 transition-transform duration-700 border border-gray-50">
+                  <img src={data.logos?.[0]?.url} alt="LinkedIn" className="w-24 h-24 object-contain" />
+               </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">LinkedIn Banner</span>
+              <button 
+                onClick={() => handleDownloadLogo(data.logos?.[0]?.url)} 
+                className="p-2 bg-[#2F00E6]/5 hover:bg-[#2F00E6] text-[#2F00E6] hover:text-white rounded-xl transition-all"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Hidden Brand Board for PDF Export */}
+      <div className="fixed top-[-10000px] left-[-10000px] pointer-events-none">
+        <BrandBoard ref={boardRef} data={data} t={t} />
       </div>
 
     </div>

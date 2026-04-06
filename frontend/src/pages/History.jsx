@@ -7,21 +7,60 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const History = () => {
   const [history, setHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const { theme } = useTheme();
 
   useEffect(() => {
-    const saved = localStorage.getItem('brandHistory');
-    if (saved) {
-      setHistory(JSON.parse(saved));
+    setIsLoading(true);
+    try {
+      const localHistory = localStorage.getItem('brandHistoryArray');
+      if (localHistory) {
+        const parsedLocal = JSON.parse(localHistory);
+        if (parsedLocal && parsedLocal.length > 0) {
+           setHistory(parsedLocal);
+        } else {
+           setHistory([]);
+        }
+      } else {
+        setHistory([]);
+      }
+    } catch(e) {
+      console.error("Local history error:", e);
+      setHistory([]);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
-  const clearHistory = () => {
-    if (window.confirm(t('confirm_clear_history'))) {
-      localStorage.removeItem('brandHistory');
+  const clearHistory = async () => {
+    if (window.confirm(t('confirm_clear_history') || "Voulez-vous vraiment effacer tout votre historique ?")) {
+      // Effacement instantané local
+      localStorage.removeItem('brandHistoryArray');
       setHistory([]);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) supabase.from('brands').delete().eq('user_id', user.id).then();
+      } catch (err) {}
+    }
+  };
+
+  const deleteItem = async (e, itemToDel) => {
+    e.stopPropagation(); // Évite de naviguer vers viewResult
+    if (window.confirm(t('confirm_delete_item') || "Voulez-vous vraiment supprimer cette marque ?")) {
+       // Mise à jour locale
+       const newHistory = history.filter(item => item.slogan !== itemToDel.slogan);
+       setHistory(newHistory);
+       localStorage.setItem('brandHistoryArray', JSON.stringify(newHistory));
+
+       // Suppression en arrière-plan de Supabase si elle existe
+       try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (user && itemToDel.id) {
+            supabase.from('brands').delete().eq('id', itemToDel.id).then();
+         }
+       } catch (err) {}
     }
   };
 
@@ -57,7 +96,12 @@ const History = () => {
         )}
       </div>
 
-      {history.length === 0 ? (
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+           <div className="w-12 h-12 border-4 border-[#2F00E6]/20 border-t-[#2F00E6] rounded-full animate-spin mb-4"></div>
+           <p className="text-gray-400 font-black uppercase tracking-widest text-[10px]">{t('loading_history') || 'Chargement...'}</p>
+        </div>
+      ) : history.length === 0 ? (
         <div className="glass-card rounded-[2.5rem] p-16 text-center shadow-xl flex flex-col items-center animate-fade-in-up relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-br from-[#2F00E6]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
           <div className="w-24 h-24 bg-[#2F00E6]/10 rounded-[2rem] flex items-center justify-center mb-8 shadow-inner border border-[#2F00E6]/10 relative z-10">
@@ -80,7 +124,7 @@ const History = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {history.map((item, index) => (
             <div 
-              key={index}
+              key={item.id || index}
               className="glass-card rounded-[2.5rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 group cursor-pointer flex flex-col h-[380px] hover:-translate-y-2 animate-fade-in-up border border-white/50 dark:border-white/5"
               onClick={() => viewResult(item)}
               style={{ animationDelay: `${index * 0.1}s` }}
@@ -95,9 +139,18 @@ const History = () => {
                   </div>
                 )}
                 
-                {/* Date Badge */}
-                <div className="absolute top-5 left-5 bg-white/80 dark:bg-black/70 backdrop-blur-xl text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl text-gray-700 dark:text-gray-200 shadow-xl border border-white/20">
-                  {new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
+                {/* Date Badge and Delete Button */}
+                <div className="absolute top-5 left-5 right-5 flex justify-between items-center z-10">
+                  <div className="bg-white/80 dark:bg-black/70 backdrop-blur-xl text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl text-gray-700 dark:text-gray-200 shadow-xl border border-white/20">
+                    {new Date(item.created_at || item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
+                  </div>
+                  <button 
+                    onClick={(e) => deleteItem(e, item)}
+                    className="p-2 bg-red-500/80 hover:bg-red-500 text-white rounded-xl shadow-xl transition-all opacity-0 group-hover:opacity-100 border border-white/20 -translate-y-2 group-hover:translate-y-0"
+                    title={t('delete_btn') || "Supprimer"}
+                  >
+                     <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 

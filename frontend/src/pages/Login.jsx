@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+// import Turnstile from 'react-turnstile'; // Removed due to React 19 compatibility issues
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,6 +15,8 @@ const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState(null);
+  const { t } = useLanguage();
 
   // Check auth state on load
   useEffect(() => {
@@ -29,10 +33,27 @@ const Login = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Turnstile initialization
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (window.turnstile) {
+        window.turnstile.render('#turnstile-container', {
+          sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
+          callback: (token) => {
+            console.log("Turnstile Verified:", token);
+            setTurnstileToken(token);
+          },
+          theme: 'dark',
+        });
+      }
+    }, 1000); // Small delay to ensure script is loaded and DOM is ready
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     if (!email) {
-      setErrorMsg("Veuillez entrer votre adresse email.");
+      setErrorMsg(t('email_placeholder') || "Veuillez entrer votre adresse email.");
       return;
     }
     setLoading(true);
@@ -45,7 +66,7 @@ const Login = () => {
     if (error) {
       setErrorMsg(error.message);
     } else {
-      setSuccessMsg("Un lien de réinitialisation a été envoyé à votre adresse email.");
+      setSuccessMsg(t('confirm_email_msg') || "Un lien de réinitialisation a été envoyé à votre adresse email.");
     }
   };
 
@@ -62,9 +83,9 @@ const Login = () => {
         err = resp.error;
         if (!err) {
           if (resp.data && resp.data.session) {
-            setSuccessMsg("Compte créé ! Vous êtes maintenant connecté.");
+            setSuccessMsg(t('account_created_msg') || "Compte créé ! Vous êtes maintenant connecté.");
           } else {
-            setSuccessMsg("Compte créé ! Veuillez consulter votre boîte mail pour confirmer votre adresse avant de vous connecter.");
+            setSuccessMsg(t('confirm_email_msg') || "Compte créé ! Veuillez consulter votre boîte mail pour confirmer votre adresse avant de vous connecter.");
           }
         }
       } else {
@@ -75,11 +96,11 @@ const Login = () => {
       if (err) throw err;
     } catch (error) {
       if (error.message?.includes('Email not confirmed')) {
-        setErrorMsg("Votre email n'est pas encore confirmé. Vérifiez votre boîte de réception.");
+        setErrorMsg(t('email_not_confirmed') || "Votre email n'est pas encore confirmé.");
       } else if (error.message?.includes('Invalid Refresh Token')) {
-        setErrorMsg("Session expirée, veuillez vous reconnecter.");
+        setErrorMsg(t('session_expired') || "Session expirée.");
       } else {
-        setErrorMsg(error.message || "Une erreur est survenue lors de l'authentification.");
+        setErrorMsg(error.message || t('auth_error') || "Une erreur est survenue.");
       }
     } finally {
       setLoading(false);
@@ -109,15 +130,22 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#020617] font-['Outfit'] relative overflow-hidden p-6">
+    <div className="min-h-screen flex items-center justify-center bg-[#020617] font-['Outfit'] relative overflow-hidden p-6 dark">
+      {/* Dynamic Network Background */}
+      <div className="absolute inset-0 opacity-20" style={{ 
+        backgroundImage: `radial-gradient(circle at 2px 2px, rgba(47,0,230,0.15) 1px, transparent 0)`,
+        backgroundSize: '40px 40px'
+      }}></div>
+      
       <div className="noise-bg opacity-[0.03]"></div>
       
       {/* Animated Glow Orbs */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#2F00E6]/20 rounded-full blur-[120px] animate-pulse-glow"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#5CA8FF]/10 rounded-full blur-[150px] animate-pulse-glow" style={{ animationDelay: '-3s' }}></div>
+      <div className="absolute top-[30%] right-[20%] w-[30%] h-[30%] bg-purple-500/10 rounded-full blur-[100px] animate-pulse-glow" style={{ animationDelay: '-1.5s' }}></div>
       
       {/* Main Card */}
-      <div className="w-full max-w-[480px] glass-card p-10 sm:p-14 rounded-[3rem] shadow-[0_50px_100px_rgba(0,0,0,0.5)] relative z-10 animate-fade-in-up border border-white/10">
+      <div className="w-full max-w-[480px] glass-card p-10 sm:p-14 rounded-[3rem] shadow-[0_50px_100px_rgba(0,0,0,0.5)] relative z-10 animate-fade-in-up border border-white/20">
         
         {/* Brand Logo */}
         <div 
@@ -147,14 +175,14 @@ const Login = () => {
         {isForgotPassword ? (
           <>
             <div className="text-center mb-10">
-              <h2 className="text-3xl font-black text-white mb-3">Oublié ?</h2>
-              <p className="text-gray-400 font-bold text-sm tracking-tight italic">On s'occupe de tout.</p>
+              <h2 className="text-3xl font-black text-white mb-3">{t('forgot_title')}</h2>
+              <p className="text-gray-400 font-bold text-sm tracking-tight italic">{t('forgot_subtitle')}</p>
             </div>
             <form onSubmit={handleForgotPassword} className="flex flex-col gap-6">
               <div className="relative group">
                 <input 
                   type="email" 
-                  placeholder="Adresse email" 
+                  placeholder={t('email_placeholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -167,25 +195,25 @@ const Login = () => {
                 className="group relative w-full bg-[#2F00E6] text-white font-black text-sm uppercase tracking-[0.2em] py-5 rounded-2xl shadow-[0_20px_50px_rgba(47,0,230,0.3)] hover:bg-[#1200AB] active:scale-95 transition-all duration-500 overflow-hidden"
               >
                 <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]"></div>
-                <span className="relative z-10">{loading ? 'ENVOI...' : 'RÉINITIALISER'}</span>
+                <span className="relative z-10">{loading ? t('sending_btn') : t('reset_btn')}</span>
               </button>
             </form>
             <p className="text-center mt-10">
-              <button onClick={resetToLogin} className="text-white/40 hover:text-white font-black text-[10px] uppercase tracking-[0.2em] transition-all">← Retourner</button>
+              <button onClick={resetToLogin} className="text-white/40 hover:text-white font-black text-[10px] uppercase tracking-[0.2em] transition-all">{t('back_to_login')}</button>
             </p>
           </>
         ) : (
           <>
             <div className="text-center mb-10">
-              <h2 className="text-3xl font-black text-white mb-3">{isSignUp ? 'REJOINDRE' : 'BIENVENU'}</h2>
-              <p className="text-gray-400 font-bold text-sm tracking-tight italic">{isSignUp ? 'Lancez votre empire.' : 'Accéder à votre espace stratégique.'}</p>
+              <h2 className="text-3xl font-black text-white mb-3">{isSignUp ? t('signup_welcome') : t('login_welcome')}</h2>
+              <p className="text-gray-400 font-bold text-sm tracking-tight italic">{isSignUp ? t('signup_subtitle') : t('login_subtitle')}</p>
             </div>
 
             <form onSubmit={handleAuth} className="flex flex-col gap-6">
               <div className="relative group">
                 <input 
                   type="email" 
-                  placeholder="ADRESSE EMAIL" 
+                  placeholder={t('email_placeholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -196,7 +224,7 @@ const Login = () => {
               <div className="relative group">
                 <input 
                   type={showPassword ? "text" : "password"} 
-                  placeholder="MOT DE PASSE" 
+                  placeholder={t('password_placeholder')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -213,23 +241,28 @@ const Login = () => {
 
               {!isSignUp && (
                 <div className="flex justify-end -mt-2">
-                  <button type="button" onClick={() => { setIsForgotPassword(true); setErrorMsg(''); setSuccessMsg(''); }} className="text-[10px] font-black uppercase tracking-widest text-[#2F00E6] hover:text-[#5CA8FF] transition-colors">Oublié ?</button>
+                  <button type="button" onClick={() => { setIsForgotPassword(true); setErrorMsg(''); setSuccessMsg(''); }} className="text-[10px] font-black uppercase tracking-widest text-[#2F00E6] hover:text-[#5CA8FF] transition-colors">{t('forgot_password_link')}</button>
                 </div>
               )}
 
+
+              <div className="flex justify-center my-4 min-h-[65px]">
+                <div id="turnstile-container"></div>
+              </div>
+
               <button 
                 type="submit"
-                disabled={loading}
-                className="group relative w-full bg-[#2F00E6] text-white font-black text-sm uppercase tracking-[0.2em] py-5 rounded-2xl shadow-[0_20px_50px_rgba(47,0,230,0.3)] hover:bg-[#1200AB] active:scale-95 transition-all duration-500 overflow-hidden"
+                disabled={loading || !turnstileToken}
+                className={`group relative w-full ${loading || !turnstileToken ? 'bg-gray-700 cursor-not-allowed opacity-50' : 'bg-[#2F00E6] hover:bg-[#1200AB]'} text-white font-black text-sm uppercase tracking-[0.2em] py-5 rounded-2xl shadow-[0_20px_50px_rgba(47,0,230,0.3)] active:scale-95 transition-all duration-500 overflow-hidden`}
               >
                 <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]"></div>
-                <span className="relative z-10">{loading ? 'CHARGEMENT...' : (isSignUp ? 'S\'INSCRIRE' : 'SE CONNECTER')}</span>
+                <span className="relative z-10">{loading ? t('loading_btn') : (isSignUp ? t('signup_btn') : t('login_btn'))}</span>
               </button>
             </form>
 
             <div className="flex items-center gap-4 my-8">
               <div className="h-px bg-white/10 flex-1"></div>
-              <span className="text-white/20 text-[10px] font-black uppercase tracking-[0.3em]">OU</span>
+              <span className="text-white/20 text-[10px] font-black uppercase tracking-[0.3em]">{t('or_divider')}</span>
               <div className="h-px bg-white/10 flex-1"></div>
             </div>
 
@@ -263,8 +296,8 @@ const Login = () => {
             </div>
 
             <p className="text-center mt-12">
-              <span className="text-white/20 font-black text-[10px] uppercase tracking-widest">{isSignUp ? 'DÉJÀ MEMBRE ?' : 'PAS ENCORE ?'}</span>
-              <button onClick={() => { setIsSignUp(!isSignUp); setErrorMsg(''); setSuccessMsg(''); }} className="ml-3 text-white hover:text-[#2F00E6] font-black text-[10px] uppercase tracking-[0.2em] transition-all underline decoration-[#2F00E6] decoration-2 underline-offset-4">{isSignUp ? 'SE CONNECTER' : 'REJOINDRE'}</button>
+              <span className="text-white/20 font-black text-[10px] uppercase tracking-widest">{isSignUp ? t('already_member') : t('not_member')}</span>
+              <button onClick={() => { setIsSignUp(!isSignUp); setErrorMsg(''); setSuccessMsg(''); }} className="ml-3 text-white hover:text-[#2F00E6] font-black text-[10px] uppercase tracking-[0.2em] transition-all underline decoration-[#2F00E6] decoration-2 underline-offset-4">{isSignUp ? t('login_btn') : t('signup_welcome')}</button>
             </p>
           </>
         )}

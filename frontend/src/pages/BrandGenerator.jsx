@@ -68,20 +68,20 @@ const BrandGenerator = () => {
       <div className="text-center mb-12 lg:mb-16 relative z-10 animate-fade-in-up">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2F00E6]/5 border border-[#2F00E6]/10 mb-6 group hover:bg-[#2F00E6]/10 transition-colors">
           <Sparkles className="w-3.5 h-3.5 text-[#2F00E6]" />
-          <span className="text-[11px] font-black uppercase tracking-widest text-[#2F00E6]">Intelligence Artificielle</span>
+          <span className="text-[11px] font-black uppercase tracking-widest text-[#2F00E6]">{t('ai_badge')}</span>
         </div>
         <h1 className="text-[55px] sm:text-[75px] lg:text-[90px] font-black tracking-tight leading-[0.9] mb-4 text-[#13009E] dark:text-white font-['Outfit']">
-          Créez votre <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2F00E6] to-[#5CA8FF]">identité unique</span>
+          {t('main_headline_prefix')} <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2F00E6] to-[#5CA8FF]">{t('main_headline_suffix')}</span>
         </h1>
         <p className="text-gray-500 dark:text-gray-400 font-bold text-lg lg:text-xl max-w-lg mx-auto">
-          Dites-nous qui vous êtes, nous définissons qui vous serez.
+          {t('generator_subtitle')}
         </p>
       </div>
       
       <form onSubmit={handleGenerate} className="w-full max-w-[700px] grid grid-cols-1 md:grid-cols-2 gap-5 relative z-10 animate-fade-in-up" style={{animationDelay: '0.1s'}}>
         
         <div className="md:col-span-2 group">
-          <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 ml-4">Nom de la marque</label>
+          <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 ml-4">{t('brand_name_placeholder')}</label>
           <input 
             type="text" 
             placeholder={t('brand_name_placeholder')} 
@@ -92,7 +92,7 @@ const BrandGenerator = () => {
         </div>
         
         <div className="md:col-span-2 group">
-          <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 ml-4">Secteur d'activité</label>
+          <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2 ml-4">{t('industry_placeholder')}</label>
           <input 
             type="text" 
             placeholder={t('industry_placeholder')} 
@@ -100,6 +100,24 @@ const BrandGenerator = () => {
             onChange={(e) => setIndustry(e.target.value)}
             className="w-full h-[65px] lg:h-[75px] px-8 rounded-2xl glass-card text-lg lg:text-xl text-gray-800 dark:text-white focus:outline-none focus:ring-4 focus:ring-[#2F00E6]/10 border-2 border-white/50 dark:border-white/5 transition-all placeholder:text-gray-400/50 font-black"
           />
+          
+          {/* Industry Suggestions */}
+          <div className="flex flex-wrap gap-2 mt-4 ml-2">
+            {['Tech', 'Luxe', 'Food', 'Sport', 'Immobilier', 'Mode'].map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => setIndustry(tag)}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  industry === tag 
+                    ? 'bg-[#2F00E6] text-white shadow-lg' 
+                    : 'bg-white/50 dark:bg-white/5 text-gray-500 hover:bg-[#2F00E6]/10 border border-white dark:border-white/10'
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
         </div>
         
         <button 
@@ -127,7 +145,7 @@ const BrandGenerator = () => {
       
       {/* Decorative footer text */}
       <p className="mt-16 text-[10px] text-gray-400 font-black uppercase tracking-[0.4em] opacity-40 relative z-10">
-        Branding Automatisé • Propulsé par BRAND.AI
+        {t('automated_branding')} • {t('powered_by')}
       </p>
       
     </div>

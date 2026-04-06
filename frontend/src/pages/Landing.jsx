@@ -246,6 +246,18 @@ const Landing = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer Section - Visible on Scroll */}
+      <div className="absolute bottom-10 left-8 lg:left-[100px] z-30 animate-fade-in-up" style={{ animationDelay: '1s' }}>
+        <div className="flex flex-col gap-2">
+          <p className="text-[10px] font-black text-gray-400 dark:text-white/20 uppercase tracking-[0.5em]">
+            TECH NOVA CHALLENGE 2026 • BINÔME 35
+          </p>
+          <p className="text-[10px] font-black text-[#2F00E6] dark:text-[#5CA8FF] uppercase tracking-[0.2em]">
+            EMMANUEL TOHOUEGNON & ANGE HLEKPE
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

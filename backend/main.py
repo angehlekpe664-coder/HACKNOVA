@@ -58,10 +58,11 @@ security = HTTPBearer()
 def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
     try:
+        print(f"Verifying token with Supabase...")
         response = requests.get(
             f"{SUPABASE_URL}/auth/v1/user",
             headers={"Authorization": f"Bearer {token}", "apikey": SUPABASE_KEY},
-            timeout=15
+            timeout=45
         )
 
         if response.status_code != 200:
@@ -90,7 +91,9 @@ llm = ChatOpenAI(
     base_url="https://text.pollinations.ai/openai",
     api_key="none",
     model="openai",
-    max_tokens=1000
+    max_tokens=1000,
+    request_timeout=20,
+    max_retries=1
 )
 
 class BrandRequest(BaseModel):
@@ -158,7 +161,7 @@ def generate_brand_identity_with_gemini(brand_name: str, industry: str):
     Ne génère aucun code SVG ni aucun texte en dehors du JSON. Sois précis et technique dans tes prompts anglais pour l'IA d'image.
     """
     
-    # Tentative avec Gemini 2.5 (plus intelligent) avec repli sur flash-lite / pro
+    # Tentative avec Gemini 2.5 (plus intelligent) avec repli sur 2.5-pro / 3.1-flash-lite
     target_model = 'gemini-2.5-flash'
     try:
         response = client.models.generate_content(
@@ -167,17 +170,17 @@ def generate_brand_identity_with_gemini(brand_name: str, industry: str):
             config=types.GenerateContentConfig(response_mime_type='application/json'),
         )
     except Exception as e:
-        print(f"--- QUOTA 2.5 ATTEINT ({e}), REPLI SUR 2.5-FLASH-LITE ---")
+        print(f"--- QUOTA ATTEINT ({e}), REPLI SUR 2.5-PRO ---")
         try:
             response = client.models.generate_content(
-                model='gemini-2.5-flash-lite',
+                model='gemini-2.5-pro',
                 contents=prompt,
                 config=types.GenerateContentConfig(response_mime_type='application/json'),
             )
         except Exception as e2:
-            print(f"Échec flash-lite: {e2}. Repli sur gemini-2.5-pro.")
+            print(f"Échec 2.5-pro: {e2}. Repli sur 3.1-flash-lite.")
             response = client.models.generate_content(
-                model='gemini-2.5-pro',
+                model='gemini-3.1-flash-lite-preview',
                 contents=prompt,
                 config=types.GenerateContentConfig(response_mime_type='application/json'),
             )
@@ -191,9 +194,136 @@ def generate_brand_identity_with_gemini(brand_name: str, industry: str):
         if text.startswith('json'): text = text[4:].strip()
         return json.loads(text)
 
+def generate_logo_with_cloudflare(prompt: str):
+    """
+    Génère une image via le Cloudflare Worker brrand-ai (Modèle SDXL).
+    Retourne l'image en format Data URI Base64.
+    """
+    cloudflare_url = os.getenv("CLOUDFLARE_WORKER_URL", "").strip()
+    cloudflare_key = os.getenv("CLOUDFLARE_WORKER_KEY", "").strip()
+    
+    if not cloudflare_url or not cloudflare_key:
+        print("CONFIG ERROR: CLOUDFLARE_WORKER_URL ou KEY non défini")
+        return None
+
+    try:
+        print(f"--- GÉNÉRATION CLOUDFLARE FALLBACK POUR: {prompt[:30]}... ---")
+        # DEBUG: On vérifie discrètement la clé (longueur et extrémités)
+        print(f"[DEBUG] CF Key L: {len(cloudflare_key)}, Starts with: {cloudflare_key[:2]}..., Ends with: ...{cloudflare_key[-2:]}")
+        
+        # On utilise une astuce pour envoyer du UTF-8 dans les entêtes via Latin-1
+        # car requests encode les entêtes en Latin-1 par défaut.
+        safe_key = cloudflare_key.encode('utf-8').decode('latin-1')
+        headers = {
+            "Authorization": f"Bearer {safe_key}",
+            "Content-Type": "application/json"
+        }
+        # On logue la réponse pour débugger le 401 persistante
+        res = requests.post(cloudflare_url, json={"prompt": prompt}, headers=headers, timeout=60)
+        
+        if res.status_code == 200:
+            img_b64 = base64.b64encode(res.content).decode()
+            print("--- LOGO CLOUDFLARE GÉNÉRÉ AVEC SUCCÈS ---")
+            return f"data:image/jpeg;base64,{img_b64}"
+        elif res.status_code == 401:
+            # Deuxième tentative sans 'Bearer ' au cas où le Worker ferait un check strict
+            print("[DEBUG] 401 reçu, tentative sans 'Bearer'...")
+            res2 = requests.post(cloudflare_url, json={"prompt": prompt}, headers={"Authorization": safe_key}, timeout=60)
+            if res2.status_code == 200:
+                img_b64 = base64.b64encode(res2.content).decode()
+                return f"data:image/jpeg;base64,{img_b64}"
+            print(f"Échec définitif 401: {res2.text}")
+            return None
+        else:
+            print(f"Erreur Worker Cloudflare: {res.status_code} - {res.text}")
+            return None
+    except Exception as e:
+        print(f"Exception lors de l'appel Cloudflare: {e}")
+        return None
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to Brand.Ai API"}
+
+def generate_logo_sync(brand_name, logo_prompt):
+    logos = []
+    print(f"--- GÉNÉRATION SYNCHRONE LOGO POUR: {brand_name} ---")
+    
+    # TENTATIVE 1: NanoBanana
+    try:
+        NANOBANANA_KEY = os.getenv("NANOBANANA_KEY")
+        headers = {
+            "Authorization": f"Bearer {NANOBANANA_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {"prompt": logo_prompt}
+        api_url = "https://nanobnana.com/api/generate"
+        res = requests.post(api_url, json=payload, headers=headers, timeout=20)
+        
+        if res.status_code == 200:
+            data = res.json()
+            img_url = None
+            task_id = data.get("task_id")
+            
+            if task_id:
+                print(f"Tâche NanoBanana asynchrone démarrée : {task_id}. Polling en cours...")
+                import time
+                for attempt in range(8):
+                    time.sleep(3)
+                    status_url = f"https://nanobnana.com/api/status?task_id={task_id}"
+                    status_res = requests.get(status_url, headers=headers, timeout=10)
+                    
+                    if status_res.status_code == 200:
+                        status_data = status_res.json()
+                        d = status_data.get("data", {})
+                        
+                        if d.get("status") == 1 or "response" in d:
+                            responses = d.get("response", [])
+                            if responses and len(responses) > 0:
+                                img_url = responses[0]
+                                break
+            else:
+                if isinstance(data, dict):
+                    if "image" in data and isinstance(data["image"], str):
+                        img_url = data["image"]
+                    elif "url" in data and isinstance(data["url"], str):
+                        img_url = data["url"]
+            
+            if img_url:
+                img_res = requests.get(img_url, timeout=15)
+                if img_res.status_code == 200:
+                    img_b64 = base64.b64encode(img_res.content).decode()
+                    content_type = img_res.headers.get('Content-Type', 'image/png')
+                    logos.append({"id": 1, "url": f"data:{content_type};base64,{img_b64}"})
+                    print("--- LOGO NANOBANANA GÉNÉRÉ AVEC SUCCÈS ---")
+    except Exception as e:
+        print(f"Erreur détaillé lors de l'appel NanoBanana: {e}")
+
+    # TENTATIVE 2: Cloudflare Worker 
+    if not logos:
+        print("--- ACTIVATION DU FALLBACK CLOUDFLARE WORKER ---")
+        cf_logo_uri = generate_logo_with_cloudflare(logo_prompt)
+        if cf_logo_uri:
+            logos.append({"id": 1, "url": cf_logo_uri})
+
+    # TENTATIVE 3: Pollinations AI
+    if not logos:
+        try:
+            print(f"--- ACTIVATION DU TROISIÈME FALLBACK POLLINATIONS AI POUR: {logo_prompt} ---")
+            encoded_prompt = urllib.parse.quote(logo_prompt)
+            image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&nologo=true"
+            
+            img_res = requests.get(image_url, timeout=15)
+            if img_res.status_code == 200:
+                img_b64 = base64.b64encode(img_res.content).decode()
+                content_type = img_res.headers.get('Content-Type', 'image/jpeg')
+                logos.append({"id": 1, "url": f"data:{content_type};base64,{img_b64}"})
+                print("--- LOGO POLLINATIONS GÉNÉRÉ AVEC SUCCÈS ---")
+        except Exception as e:
+            print(f"Erreur avec Pollinations: {e}")
+            
+    return logos
 
 @app.post("/api/generate")
 def generate_brand(request: BrandRequest, user = Depends(verify_token)):
@@ -224,98 +354,18 @@ def generate_brand(request: BrandRequest, user = Depends(verify_token)):
                     "typography": {"heading": "Outfit", "body": "Inter"},
                     "slogan": f"{request.brand_name}, l'innovation commence ici."
                 }
-
-        # GÉNÉRATION DE LOGO IA (Strictement NanoBanana "lui ou rien")
-        logos: list[dict] = []
+                
+        # Génération du logo de manière synchrone en utilisant les prompts générés
         try:
-            print(f"--- GÉNÉRATION LOGO POUR: {request.brand_name} ---")
-            
-            # 1. Préparation du prompt
-            logo_prompt = f"minimalist professional vector logo for {request.brand_name}, white background, high quality"
-            if ai_data and ai_data.get("logo_prompts") and len(ai_data.get("logo_prompts")) > 0:
-                logo_prompt = ai_data.get("logo_prompts")[0]
+             logo_prompt = getattr(request, 'prompt', None)
+        except Exception:
+             logo_prompt = None
 
-            NANOBANANA_KEY = os.getenv("NANOBANANA_API_KEY")
-            if not NANOBANANA_KEY:
-                     raise RuntimeError("NANOBANANA_API_KEY doit être défini dans le fichier .env")
-
-            print(f"Tentative Nano Banana API (lui ou rien) avec le prompt: {logo_prompt}")
-            
-            headers = {
-                "Authorization": f"Bearer {NANOBANANA_KEY}",
-                "Content-Type": "application/json"
-            }
-            
-            # Format exact fourni par l'utilisateur
-            payload = {
-                "prompt": logo_prompt
-            }
-            
-            # On utilise l'URL correcte du serveur
-            api_url = "https://nanobnana.com/api/generate"
-            res = requests.post(api_url, json=payload, headers=headers, timeout=45)
-            
-            if res.status_code == 200:
-                data = res.json()
-                data_str = str(data)
-                print(f"Réponse JSON NanoBanana brute : {data_str}")
-                
-                img_url = None
-                task_id = data.get("task_id")
-                
-                if task_id:
-                    print(f"Tâche NanoBanana asynchrone démarrée : {task_id}. Polling en cours...")
-                    import time
-                    # Poller jusqu'à 30 secondes (10 essais * 3s)
-                    for attempt in range(10):
-                        time.sleep(3)
-                        status_url = f"https://nanobnana.com/api/status?task_id={task_id}"
-                        status_res = requests.get(status_url, headers=headers, timeout=10)
-                        
-                        if status_res.status_code == 200:
-                            status_data = status_res.json()
-                            d = status_data.get("data", {})
-                            
-                            # Si status == 1 ou si la reponse existe
-                            if d.get("status") == 1 or "response" in d:
-                                responses = d.get("response", [])
-                                if responses and len(responses) > 0:
-                                    img_url = responses[0]
-                                    print(f"Image NanoBanana prête (tentative {attempt+1})!")
-                                    break
-                            
-                            print(f"En attente (tentative {attempt+1}... statut: {d.get('status')})")
-                        else:
-                            print(f"Erreur de statut API: {status_res.status_code}")
-                else:
-                    # Extraction directe si l'API change de comportement
-                    if isinstance(data, dict):
-                        if "image" in data and isinstance(data["image"], str):
-                            img_url = data["image"]
-                        elif "url" in data and isinstance(data["url"], str):
-                            img_url = data["url"]
-                
-                if img_url:
-                    print(f"URL d'image trouvée : {img_url}")
-                    # Téléchargement et conversion b64
-                    img_res = requests.get(img_url, timeout=15)
-                    if img_res.status_code == 200:
-                        img_b64 = base64.b64encode(img_res.content).decode()
-                        content_type = img_res.headers.get('Content-Type', 'image/png')
-                        logos.append({
-                            "id": 1, 
-                            "url": f"data:{content_type};base64,{img_b64}"
-                        })
-                        print("--- LOGO NANO BANANA GÉNÉRÉ ET ENCODÉ AVEC SUCCÈS ---")
-                    else:
-                        print(f"Impossible de télécharger l'image depuis l'URL NanoBanana: {img_res.status_code}")
-                else:
-                    print(f"Impossible de trouver l'URL de l'image (task non terminée ou erreur): {data}")
-            else:
-                print(f"Echec API Nano Banana: {res.status_code} - {res.text}")
-                
-        except Exception as e:
-            print(f"Erreur détaillé lors de l'appel NanoBanana: {e}")
+        if not logo_prompt:
+             prompts = ai_data.get("logo_prompts", [])
+             logo_prompt = prompts[0] if prompts else f"minimalist professional vector logo for {request.brand_name}, white background, high quality"
+             
+        logos = generate_logo_sync(request.brand_name, logo_prompt)
 
         return {
             "status": "success",
@@ -323,7 +373,8 @@ def generate_brand(request: BrandRequest, user = Depends(verify_token)):
                 "logos": logos,
                 "colors": ai_data.get("colors"),
                 "typography": ai_data.get("typography"),
-                "slogan": ai_data.get("slogan")
+                "slogan": ai_data.get("slogan"),
+                "logo_prompts": ai_data.get("logo_prompts")
             }
         }
     except Exception as e:
@@ -380,9 +431,12 @@ def entrepreneur_chat(request: ChatRequest, user = Depends(verify_token)):
 
     # Ordre : du plus capable au plus disponible (quota croissant)
     MODELS = [
-        'gemini-2.5-flash',        # Meilleur équilibre qualité / vitesse
-        'gemini-2.5-flash-lite',   # Très disponible et plus léger
-        'gemini-2.5-pro',          # Plus capable pour les requêtes complexes
+        'gemini-3.1-pro-preview',     # Le plus intelligent
+        'gemini-3.1-flash-lite-preview', # Très haute disponibilité
+        'gemini-2.5-flash',           # Équilibré
+        'gemini-2.5-flash-lite',      # Rapide
+        'gemini-2.5-pro',             # Très capable
+        'gemini-2.0-flash',           # Ancien modèle (fallback)
     ]
     
     for model_name in MODELS:
@@ -440,25 +494,38 @@ def export_brand_zip(brand_data: dict, user = Depends(verify_token)):
         zip_buffer = io.BytesIO()
         
         with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
-            # 1. Logo SVG
+            # 1. Logo (SVG or PNG)
             logo_url = brand_data.get("logo_url", "")
-            if "base64," in logo_url:
-                svg_content = base64.b64decode(logo_url.split("base64,")[1]).decode()
-                zip_file.writestr("logo.svg", svg_content)
+            if logo_url:
+                if "base64," in logo_url:
+                    try:
+                        svg_content = base64.b64decode(logo_url.split("base64,")[1])
+                        zip_file.writestr("logo.svg", svg_content)
+                    except: pass
+                elif logo_url.startswith("http"):
+                    try:
+                        resp_img = requests.get(logo_url, timeout=10)
+                        if resp_img.status_code == 200:
+                            ext = "png" if ".png" in logo_url.lower() else "svg" if ".svg" in logo_url.lower() else "png"
+                            zip_file.writestr(f"logo.{ext}", resp_img.content)
+                    except: pass
             
             # 2. Palette de couleurs
             colors = brand_data.get("colors", {})
-            colors_txt = "PALETTE DE COULEURS\n" + "="*20 + "\n"
+            styles = brand_data.get("typography", {})
+            colors_txt = f"BRAND IDENTITY: {brand_name}\n" + "="*30 + "\n\n"
+            colors_txt += "COLOR PALETTE\n" + "-"*15 + "\n"
             for key, val in colors.items():
                 colors_txt += f"{key.capitalize()}: {val}\n"
-            zip_file.writestr("brand_palette.txt", colors_txt)
             
-            # 3. Guide de style (Slogan & Typo)
-            guide_txt = f"GUIDE DE STYLE: {brand_name}\n" + "="*30 + "\n"
-            guide_txt += f"Slogan: {brand_data.get('slogan', 'N/A')}\n"
-            typo = brand_data.get("typography", {})
-            guide_txt += f"Typographies: {typo.get('heading', 'N/A')} (Titre), {typo.get('body', 'N/A')} (Texte)\n"
-            zip_file.writestr("style_guide.txt", guide_txt)
+            colors_txt += "\nTYPOGRAPHY\n" + "-"*15 + "\n"
+            colors_txt += f"Heading: {styles.get('heading', 'N/A')}\n"
+            colors_txt += f"Body Text: {styles.get('body', 'N/A')}\n"
+            
+            colors_txt += "\nSTRATEGIC VISION\n" + "-"*15 + "\n"
+            colors_txt += f"Official Slogan: {brand_data.get('slogan', 'N/A')}\n"
+            
+            zip_file.writestr("brand_style_guide.txt", colors_txt)
 
         zip_buffer.seek(0)
         return StreamingResponse(
