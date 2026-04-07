@@ -433,12 +433,12 @@ const OtherFeatures = () => {
                 <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-[1.2rem] flex items-center justify-center shrink-0 shadow-lg border-2 ${msg.role === 'user' ? 'bg-[#2F00E6] text-white border-white dark:border-[#020617]' : 'bg-white dark:bg-[#1e1b4b] text-[#2F00E6] border-[#2F00E6]/10'}`}>
                   {msg.role === 'user' ? <User size={20} /> : <Bot size={20} />}
                 </div>
-                <div className="flex flex-col gap-2 flex-1 min-w-0">
+                <div className={`flex flex-col gap-2 min-w-0 ${msg.role === 'user' ? 'items-end' : 'items-start flex-1'}`}>
                   <div className={`
-                    px-5 py-4 lg:py-5 rounded-[2rem] shadow-xl text-[15px] lg:text-[16px] overflow-hidden break-words leading-relaxed w-full
+                    px-5 py-4 lg:py-5 rounded-[2rem] shadow-xl text-[15px] lg:text-[16px] break-words leading-relaxed
                     ${msg.role === 'user' 
-                      ? 'bg-gradient-to-br from-[#2F00E6] to-[#1200AB] text-white rounded-tr-none' 
-                      : 'glass-card text-gray-800 dark:text-gray-200 rounded-tl-none font-medium'
+                      ? 'w-fit max-w-[85%] bg-gradient-to-br from-[#2F00E6] to-[#1200AB] text-white rounded-tr-none' 
+                      : 'w-full overflow-hidden glass-card text-gray-800 dark:text-gray-200 rounded-tl-none font-medium'
                     }
                   `}>
                     {msg.role === 'user' && msg.attachments && msg.attachments.length > 0 && (

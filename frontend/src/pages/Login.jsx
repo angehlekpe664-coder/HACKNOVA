@@ -45,8 +45,12 @@ const Login = () => {
           },
           theme: 'dark',
         });
+      } else {
+        // Turnstile script non disponible (ex: domaine non autorisé) → on débloque
+        console.warn('Turnstile non disponible, accès débloqué.');
+        setTurnstileToken('bypass');
       }
-    }, 1000); // Small delay to ensure script is loaded and DOM is ready
+    }, 3000); // 3s pour laisser le temps au script de charger
     return () => clearTimeout(timer);
   }, []);
 
@@ -252,8 +256,8 @@ const Login = () => {
 
               <button 
                 type="submit"
-                disabled={loading || !turnstileToken}
-                className={`group relative w-full ${loading || !turnstileToken ? 'bg-gray-700 cursor-not-allowed opacity-50' : 'bg-[#2F00E6] hover:bg-[#1200AB]'} text-white font-black text-sm uppercase tracking-[0.2em] py-5 rounded-2xl shadow-[0_20px_50px_rgba(47,0,230,0.3)] active:scale-95 transition-all duration-500 overflow-hidden`}
+                disabled={loading}
+                className={`group relative w-full ${loading ? 'bg-gray-700 cursor-not-allowed opacity-50' : 'bg-[#2F00E6] hover:bg-[#1200AB]'} text-white font-black text-sm uppercase tracking-[0.2em] py-5 rounded-2xl shadow-[0_20px_50px_rgba(47,0,230,0.3)] active:scale-95 transition-all duration-500 overflow-hidden`}
               >
                 <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]"></div>
                 <span className="relative z-10">{loading ? t('loading_btn') : (isSignUp ? t('signup_btn') : t('login_btn'))}</span>
