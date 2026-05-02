@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Page d'accueil -->
+  <url>
+    <loc>https://hacknova-gamma.vercel.app/</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- À propos / L'équipe -->
+  <url>
+    <loc>https://hacknova-gamma.vercel.app/about</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Générateur de Marque (Accessible au public pour le SEO, puis redirection login si nécessaire) -->
+  <url>
+    <loc>https://hacknova-gamma.vercel.app/generate</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Aide / Support -->
+  <url>
+    <loc>https://hacknova-gamma.vercel.app/help</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- Autres Fonctionnalités / Assistant IA -->
+  <url>
+    <loc>https://hacknova-gamma.vercel.app/features</loc>
+    <lastmod>2026-04-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>

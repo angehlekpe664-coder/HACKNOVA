@@ -6,8 +6,8 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
-  const { t } = useLanguage();
-  const { theme } = useTheme();
+  const { t, language, setLanguage } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
 
   // Close sidebar on mobile when navigating
   useEffect(() => {
@@ -72,6 +72,23 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             <div className="flex items-center gap-6 text-[10px] uppercase font-black tracking-[0.2em] px-4 opacity-40">
               <NavLink to="/about" className="hover:text-white transition-colors">{t('about')}</NavLink>
               <NavLink to="/help" className="hover:text-white transition-colors">{t('help')}</NavLink>
+            </div>
+
+            {/* Mobile Theme & Language Toggles */}
+            <div className="lg:hidden flex items-center justify-between bg-white/5 border border-white/10 p-2 rounded-2xl">
+              <button 
+                onClick={() => setLanguage(l => l === 'fr' ? 'en' : 'fr')}
+                className="flex-1 py-2 rounded-xl flex items-center justify-center font-black text-[11px] hover:bg-white/10 transition-all text-white"
+              >
+                {language.toUpperCase()}
+              </button>
+              <div className="w-px h-6 bg-white/10 mx-2"></div>
+              <button 
+                onClick={toggleTheme}
+                className="flex-1 py-2 rounded-xl flex items-center justify-center font-black text-[14px] hover:bg-white/10 transition-all text-white"
+              >
+                {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
+              </button>
             </div>
             
             <div className="bg-white/5 border border-white/10 p-5 rounded-[2rem] flex flex-col gap-4 group hover:bg-white/10 transition-all duration-500 cursor-pointer">

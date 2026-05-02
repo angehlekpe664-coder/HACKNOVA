@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, ChevronRight } from 'lucide-react';
+import SEO from '../components/SEO';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -32,7 +33,12 @@ const Landing = () => {
 
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-[#f8fafc] dark:bg-[#020617] font-sans selection:bg-[#2F00E6] selection:text-white overflow-hidden relative">
+    <div className="min-h-[100dvh] flex flex-col lg:flex-row bg-[#f8fafc] dark:bg-[#020617] font-sans selection:bg-[#2F00E6] selection:text-white overflow-hidden relative">
+      <SEO 
+        title="Identité de Marque augmentée par l'IA"
+        description="Propulsez votre identité visuelle avec l'intelligence artificielle de pointe. Générez des logos, slogans et palettes de couleurs en quelques secondes."
+      />
+
       
       {/* Premium Background Effects */}
       <div className="noise-bg"></div>
@@ -51,9 +57,9 @@ const Landing = () => {
         </div>
 
         <h1 className="flex items-baseline mb-6 lg:mb-10 font-['Outfit'] relative">
-          <span className="text-[65px] sm:text-[85px] lg:text-[115px] font-black leading-[0.85] text-[#13009E] dark:text-white tracking-tighter drop-shadow-sm flex-shrink-0">Brand</span>
+          <span className="text-[50px] sm:text-[65px] md:text-[85px] lg:text-[115px] font-black leading-[0.85] text-[#13009E] dark:text-white tracking-tighter drop-shadow-sm flex-shrink-0">Brand</span>
           <span className="w-4 h-4 sm:w-6 sm:h-6 lg:w-9 lg:h-9 bg-[#2F00E6] mx-1.5 sm:mx-2.5 lg:mx-3 translate-y-[-5px] lg:translate-y-[-12px] shadow-[0_10px_25px_rgba(47,0,230,0.4)] animate-levitate rounded-sm flex-shrink-0"></span>
-          <span className="text-[65px] sm:text-[85px] lg:text-[115px] font-black leading-[0.85] text-[#2F00E6] lg:text-transparent lg:bg-clip-text lg:bg-gradient-to-r lg:from-[#2F00E6] lg:to-[#5CA8FF] tracking-tighter drop-shadow-md flex-shrink-0">AI</span>
+          <span className="text-[50px] sm:text-[65px] md:text-[85px] lg:text-[115px] font-black leading-[0.85] text-[#2F00E6] lg:text-transparent lg:bg-clip-text lg:bg-gradient-to-r lg:from-[#2F00E6] lg:to-[#5CA8FF] tracking-tighter drop-shadow-md flex-shrink-0">AI</span>
         </h1>
 
         <p className="text-[26px] sm:text-[30px] lg:text-[38px] text-gray-800 dark:text-gray-200 font-bold mb-14 lg:mb-20 leading-[1.1] max-w-[580px] relative">
@@ -82,7 +88,7 @@ const Landing = () => {
       </div>
       
       {/* Right side - Infinite Vertical Scroll Showcase */}
-      <div className="w-full lg:w-[55%] min-h-[500px] lg:h-screen relative overflow-hidden flex flex-col lg:flex-row gap-5 p-5 lg:p-0 bg-gray-50/50 dark:bg-transparent">
+      <div className="w-full lg:w-[55%] min-h-[500px] lg:h-[100dvh] relative overflow-hidden flex flex-col lg:flex-row gap-5 p-5 lg:p-0 bg-gray-50/50 dark:bg-transparent">
         
         {/* Decorative dynamic background mesh for mobile */}
         <div className="absolute inset-0 mesh-gradient opacity-30 lg:hidden pointer-events-none"></div>
@@ -138,7 +144,7 @@ const Landing = () => {
         </div>
 
         {/* Desktop View: Vertical Columns (Visible on LG up) */}
-        <div className="hidden lg:flex flex-1 gap-5 overflow-hidden h-full h-screen cursor-grab active:cursor-grabbing">
+        <div className="hidden lg:flex flex-1 gap-5 overflow-hidden h-full lg:h-[100dvh] cursor-grab active:cursor-grabbing">
           
           {/* Column 1 - Scroll Down */}
           <div className="flex-1 flex flex-col gap-5 animate-scroll-down hover:pause">

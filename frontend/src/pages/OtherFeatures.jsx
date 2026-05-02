@@ -139,7 +139,7 @@ const OtherFeatures = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [attachments, setAttachments] = useState([]); // Array of { file, preview, type, base64 }
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
 
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -277,11 +277,11 @@ const OtherFeatures = () => {
         };
         setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, messages: [...s.messages, assistantMessage] } : s));
       } else {
-        let errMsg = "❌ Erreur lors de la communication avec l'IA.";
-        try { const d = await response.json(); errMsg += ` (${d.detail || response.status})`; } catch (_) { }
-        if (response.status === 401) errMsg = "🔒 connexion impossible vérifiez si vous êtes connecté à internet .";
-        if (response.status === 429) errMsg = "⚠️ Quota Brand.AI atteint. Réessayez dans quelques minutes.";
-        if (response.status === 503) errMsg = "🔧 Le serveur backend est indisponible. Vérifiez que `uvicorn` est lancé.";
+        let errMsg = "Je suis désolé, je n'ai pas pu traiter votre demande pour le moment. Pourriez-vous réessayer ?";
+        try { const d = await response.json(); errMsg += ` (Détail: ${d.detail || response.status})`; } catch (_) { }
+        if (response.status === 401) errMsg = "Il semblerait que vous ne soyez pas connecté ou que votre connexion internet ait été interrompue. Veuillez vérifier votre réseau.";
+        if (response.status === 429) errMsg = "Nous connaissons un fort trafic en ce moment. Prenez un petit café et réessayez dans quelques minutes ! ☕";
+        if (response.status === 503) errMsg = "Mon cerveau (le serveur) est actuellement en maintenance ou indisponible. Veuillez excuser ce désagrément.";
         const assistantMessage = {
           id: Date.now() + 1,
           role: 'assistant',
@@ -295,7 +295,7 @@ const OtherFeatures = () => {
       const assistantMessage = {
         id: Date.now() + 1,
         role: 'assistant',
-        content: "Erreur réseau. Vérifiez votre connexion avec le serveur backend.",
+        content: "Oups ! Il y a un problème de réseau. Vérifiez votre connexion internet et réessayez.",
         timestamp: new Date().toLocaleTimeString()
       };
       setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, messages: [...s.messages, assistantMessage] } : s));
@@ -308,10 +308,18 @@ const OtherFeatures = () => {
     <div className="flex w-full h-[calc(100vh-92px)] lg:h-[calc(100vh-48px)] overflow-hidden bg-[#f8fafc] dark:bg-[#020617] relative border border-gray-100 dark:border-white/5 rounded-3xl mx-2 mb-2 shadow-2xl">
       <div className="noise-bg opacity-10"></div>
 
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar - History with Glassmorphism */}
       <div className={`
-        ${isSidebarOpen ? 'w-64 md:w-80 border-r' : 'w-0'} 
-        transition-all duration-500 bg-white/40 dark:bg-black/20 backdrop-blur-xl border-gray-100 dark:border-white/5 flex flex-col h-full overflow-hidden shrink-0 z-30
+        ${isSidebarOpen ? 'w-72 md:w-80 border-r translate-x-0' : 'w-0 -translate-x-full md:translate-x-0'} 
+        absolute md:relative transition-all duration-500 bg-white/95 dark:bg-black/90 backdrop-blur-xl border-gray-100 dark:border-white/5 flex flex-col h-full overflow-hidden shrink-0 z-50 md:z-30
       `}>
         <div className="p-6 border-b border-gray-100 dark:border-white/5">
           <button
@@ -380,7 +388,7 @@ const OtherFeatures = () => {
             </h2>
          </div>
 
-        <div className="flex-1 overflow-y-auto p-6 lg:p-12 space-y-6 scroll-smooth custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-12 space-y-6 scroll-smooth custom-scrollbar">
           {activeSession.messages.length === 1 && (
             <div className="flex flex-col items-center justify-center h-full text-center max-w-3xl mx-auto py-20 animate-fade-in-up">
               <div className="relative mb-12 group">
@@ -435,9 +443,9 @@ const OtherFeatures = () => {
                 </div>
                 <div className={`flex flex-col gap-2 min-w-0 ${msg.role === 'user' ? 'items-end' : 'items-start flex-1'}`}>
                   <div className={`
-                    px-5 py-4 lg:py-5 rounded-[2rem] shadow-xl text-[15px] lg:text-[16px] break-words leading-relaxed
+                    px-4 py-3 lg:px-5 lg:py-5 rounded-[2rem] shadow-xl text-[16px] break-words leading-relaxed
                     ${msg.role === 'user' 
-                      ? 'w-fit max-w-[85%] bg-gradient-to-br from-[#2F00E6] to-[#1200AB] text-white rounded-tr-none' 
+                      ? 'w-fit max-w-[95%] lg:max-w-[85%] bg-gradient-to-br from-[#2F00E6] to-[#1200AB] text-white rounded-tr-none' 
                       : 'w-full overflow-hidden glass-card text-gray-800 dark:text-gray-200 rounded-tl-none font-medium'
                     }
                   `}>
@@ -514,7 +522,7 @@ const OtherFeatures = () => {
               </div>
             )}
 
-            <div className="glass-card rounded-[1.5rem] shadow-[0_16px_40px_rgba(0,0,0,0.10)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.30)] p-2 relative transition-all focus-within:ring-4 focus-within:ring-[#2F00E6]/10 border-2 border-white/50 dark:border-white/5">
+            <div className="glass-card rounded-[1.5rem] shadow-[0_16px_40px_rgba(0,0,0,0.10)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.30)] p-1.5 lg:p-2 relative transition-all focus-within:ring-4 focus-within:ring-[#2F00E6]/10 border-2 border-white/50 dark:border-white/5">
               <form onSubmit={handleSendMessage} className="flex flex-col">
                 <textarea
                   value={input}
@@ -523,12 +531,12 @@ const OtherFeatures = () => {
                     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); }
                   }}
                   placeholder={t('chat_placeholder')}
-                  className="w-full bg-transparent border-none focus:ring-0 py-2.5 px-6 resize-none min-h-[40px] max-h-[110px] text-gray-800 dark:text-white custom-scrollbar text-[16px] font-bold placeholder:text-gray-400/70"
+                  className="w-full bg-transparent border-none focus:ring-0 py-3 px-4 lg:px-6 resize-none min-h-[50px] max-h-[130px] text-gray-800 dark:text-white custom-scrollbar text-[16px] font-bold placeholder:text-gray-400/70"
                   rows="1"
                 />
-                <div className="flex items-center justify-between px-2 pb-2">
-                  <div className="flex items-center gap-2">
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="p-4 text-gray-400 hover:text-[#2F00E6] hover:bg-[#2F00E6]/5 rounded-2xl transition-all group">
+                <div className="flex items-center justify-between px-2 pb-1 lg:pb-2">
+                  <div className="flex items-center gap-1 lg:gap-2">
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="p-3 lg:p-4 text-gray-400 hover:text-[#2F00E6] hover:bg-[#2F00E6]/5 rounded-2xl transition-all group">
                       <Paperclip size={22} className="group-hover:rotate-45 transition-transform" />
                     </button>
                     <input type="file" ref={fileInputRef} onChange={handleFileSelect} multiple accept="image/*,application/pdf" className="hidden" />

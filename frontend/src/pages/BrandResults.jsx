@@ -49,16 +49,27 @@ const BrandResults = () => {
            let historyArr = historyObj ? JSON.parse(historyObj) : [];
            historyArr = historyArr.filter(item => item.slogan !== brandData.slogan);
            historyArr.unshift({...brandData, created_at: new Date().toISOString()});
+           
+           // Limite stricte pour éviter d'occuper trop d'espace (50 max)
+           if (historyArr.length > 50) {
+             historyArr = historyArr.slice(0, 50);
+           }
+
            let success = false;
-           while (!success && historyArr.length > 0) {
+           let attempts = 0;
+           // Limite de tentatives pour éviter un blocage agressif du navigateur
+           while (!success && historyArr.length > 0 && attempts < 10) {
               try {
                   localStorage.setItem('brandHistoryArray', JSON.stringify(historyArr));
                   success = true;
               } catch (e) {
                   historyArr.pop();
+                  attempts++;
               }
            }
-        } catch(e) {}
+        } catch(e) {
+           console.error("Erreur de sauvegarde de l'historique:", e);
+        }
       };
       
       if (!isSavingRef.current) {
@@ -205,11 +216,11 @@ const BrandResults = () => {
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#0D0066] dark:text-white font-['Outfit'] tracking-tight">{t('results_title')}</h1>
           <p className="text-gray-500 dark:text-gray-400 font-bold">{t('results_subtitle')}</p>
         </div>
-        <div className="grid grid-cols-2 md:flex md:flex-row md:items-center gap-3 w-full md:w-auto">
+        <div className="flex overflow-x-auto scrollbar-hide snap-x md:flex-row md:items-center gap-3 w-full md:w-auto pb-2">
           <button 
             onClick={handleDownloadPDF}
             disabled={isDownloading}
-            className="group relative flex items-center justify-center gap-2 md:gap-3 bg-white dark:bg-white/10 text-[#0D0066] dark:text-white px-2 py-3 md:px-8 md:py-4 rounded-2xl font-black hover:bg-gray-50 dark:hover:bg-white/20 transition-all shadow-xl active:scale-95 disabled:opacity-50 border border-gray-100 dark:border-white/10 text-xs md:text-base text-center"
+            className="shrink-0 snap-start group relative flex items-center justify-center gap-2 md:gap-3 bg-white dark:bg-white/10 text-[#0D0066] dark:text-white px-4 py-3 md:px-8 md:py-4 rounded-2xl font-black hover:bg-gray-50 dark:hover:bg-white/20 transition-all shadow-xl active:scale-95 disabled:opacity-50 border border-gray-100 dark:border-white/10 text-[11px] md:text-base text-center"
           >
             <FileText className="w-4 h-4 md:w-5 md:h-5 text-[#2F00E6]" /> 
             <span>{isDownloading ? t('preparing') : 'Brand Board'}</span>
@@ -217,7 +228,7 @@ const BrandResults = () => {
           <button 
             onClick={handleDownloadZip}
             disabled={isDownloading}
-            className="group relative flex items-center justify-center gap-2 md:gap-3 bg-[#2F00E6] text-white px-2 py-3 md:px-8 md:py-4 rounded-2xl font-black hover:bg-[#1200AB] transition-all shadow-[0_20px_50px_rgba(47,0,230,0.25)] active:scale-95 disabled:opacity-50 overflow-hidden text-xs md:text-base text-center"
+            className="shrink-0 snap-start group relative flex items-center justify-center gap-2 md:gap-3 bg-[#2F00E6] text-white px-4 py-3 md:px-8 md:py-4 rounded-2xl font-black hover:bg-[#1200AB] transition-all shadow-[0_20px_50px_rgba(47,0,230,0.25)] active:scale-95 disabled:opacity-50 overflow-hidden text-[11px] md:text-base text-center"
           >
             <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]"></div>
             <Download className="w-4 h-4 md:w-5 md:h-5 relative z-10" /> 
@@ -225,14 +236,14 @@ const BrandResults = () => {
           </button>
           <button 
             onClick={() => window.print()}
-            className="flex items-center justify-center gap-1 md:gap-2 text-gray-400 bg-white/50 dark:bg-white/5 px-2 py-3 md:px-6 md:py-4 rounded-2xl font-black hover:bg-white dark:hover:bg-white/10 transition-all border border-gray-100 dark:border-white/10 uppercase tracking-widest text-[9px] md:text-[11px]"
+            className="hidden shrink-0 snap-start md:flex items-center justify-center gap-1 md:gap-2 text-gray-400 bg-white/50 dark:bg-white/5 px-4 py-3 md:px-6 md:py-4 rounded-2xl font-black hover:bg-white dark:hover:bg-white/10 transition-all border border-gray-100 dark:border-white/10 uppercase tracking-widest text-[11px]"
             title="Imprimer ou Sauvegarder en PDF"
           >
             <Printer className="w-3 h-3 md:w-4 md:h-4" /> {t('print') || 'PDF'}
           </button>
           <button 
             onClick={() => navigate('/history')}
-            className="flex items-center justify-center gap-1 md:gap-2 text-[#2F00E6] dark:text-blue-400 bg-[#2F00E6]/5 dark:bg-blue-400/5 px-2 py-3 md:px-6 md:py-4 rounded-2xl font-black hover:bg-[#2F00E6]/10 transition-all border border-[#2F00E6]/10 uppercase tracking-widest text-[9px] md:text-[11px]"
+            className="shrink-0 snap-start flex items-center justify-center gap-1 md:gap-2 text-[#2F00E6] dark:text-blue-400 bg-[#2F00E6]/5 dark:bg-blue-400/5 px-4 py-3 md:px-6 md:py-4 rounded-2xl font-black hover:bg-[#2F00E6]/10 transition-all border border-[#2F00E6]/10 uppercase tracking-widest text-[11px]"
           >
             <Bookmark className="w-3 h-3 md:w-4 md:h-4" /> {t('view_history')}
           </button>
@@ -242,7 +253,7 @@ const BrandResults = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Logos Tiles */}
-        <div className="glass-card p-6 rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all duration-500 h-auto lg:h-[380px] flex flex-col group relative animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+        <div className="glass-card p-6 rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all duration-500 min-h-[300px] lg:h-[380px] flex flex-col group relative animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-black text-[13px] text-gray-400 uppercase tracking-widest">{t('logo_label')}</h2>
             <div className="w-8 h-1 bg-[#2F00E6]/20 rounded-full"></div>
@@ -275,7 +286,7 @@ const BrandResults = () => {
         </div>
         
         {/* Palette Tiles */}
-        <div className="glass-card p-6 rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all duration-500 h-[380px] flex flex-col animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <div className="glass-card p-6 rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all duration-500 min-h-[300px] lg:h-[380px] flex flex-col animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-black text-[13px] text-gray-400 uppercase tracking-widest">{t('palette_label')}</h2>
             <span className="text-[#2F00E6] bg-[#2F00E6]/5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter border border-[#2F00E6]/10">Smart Selection</span>
@@ -298,7 +309,7 @@ const BrandResults = () => {
         </div>
         
         {/* Typographies Tiles */}
-        <div className="glass-card p-6 rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all duration-500 h-[380px] flex flex-col animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+        <div className="glass-card p-6 rounded-[2.5rem] shadow-xl hover:shadow-2xl transition-all duration-500 min-h-[300px] lg:h-[380px] flex flex-col animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-black text-[13px] text-gray-400 uppercase tracking-widest">{t('typography_label')}</h2>
             <div className="w-8 h-1 bg-[#2F00E6]/20 rounded-full"></div>

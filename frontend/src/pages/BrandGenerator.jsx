@@ -5,8 +5,10 @@ import { supabase } from '../lib/supabase';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import SEO from '../components/SEO';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 
 const BrandGenerator = () => {
   const [brandName, setBrandName] = useState('');
@@ -57,8 +59,13 @@ const BrandGenerator = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full px-6 relative overflow-hidden bg-[#f8fafc] dark:bg-[#020617] transition-colors duration-300">
+    <div className="flex-1 flex flex-col items-center justify-center min-h-[calc(100dvh-80px)] w-full px-6 relative overflow-hidden bg-[#f8fafc] dark:bg-[#020617] transition-colors duration-300">
+      <SEO 
+        title="Générateur de Marque"
+        description="Créez votre identité de marque en quelques secondes avec notre générateur propulsé par l'IA. Logos, slogans et palettes de couleurs personnalisés."
+      />
       <LoadingOverlay isVisible={loading} />
+
       
       {/* Premium Background Effects */}
       <div className="noise-bg opacity-10"></div>
@@ -87,7 +94,7 @@ const BrandGenerator = () => {
             placeholder={t('brand_name_placeholder')} 
             value={brandName}
             onChange={(e) => setBrandName(e.target.value)}
-            className="w-full h-[65px] lg:h-[75px] px-8 rounded-2xl glass-card text-lg lg:text-xl text-gray-800 dark:text-white focus:outline-none focus:ring-4 focus:ring-[#2F00E6]/10 border-2 border-white/50 dark:border-white/5 transition-all placeholder:text-gray-400/50 font-black"
+            className="w-full h-[55px] lg:h-[75px] px-8 rounded-2xl glass-card text-lg lg:text-xl text-gray-800 dark:text-white focus:outline-none focus:ring-4 focus:ring-[#2F00E6]/10 border-2 border-white/50 dark:border-white/5 transition-all placeholder:text-gray-400/50 font-black"
           />
         </div>
         
@@ -98,7 +105,7 @@ const BrandGenerator = () => {
             placeholder={t('industry_placeholder')} 
             value={industry}
             onChange={(e) => setIndustry(e.target.value)}
-            className="w-full h-[65px] lg:h-[75px] px-8 rounded-2xl glass-card text-lg lg:text-xl text-gray-800 dark:text-white focus:outline-none focus:ring-4 focus:ring-[#2F00E6]/10 border-2 border-white/50 dark:border-white/5 transition-all placeholder:text-gray-400/50 font-black"
+            className="w-full h-[55px] lg:h-[75px] px-8 rounded-2xl glass-card text-lg lg:text-xl text-gray-800 dark:text-white focus:outline-none focus:ring-4 focus:ring-[#2F00E6]/10 border-2 border-white/50 dark:border-white/5 transition-all placeholder:text-gray-400/50 font-black"
           />
           
           {/* Industry Suggestions */}
