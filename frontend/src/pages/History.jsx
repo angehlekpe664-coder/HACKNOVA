@@ -13,54 +13,62 @@ const History = () => {
   const { theme } = useTheme();
 
   useEffect(() => {
-    setIsLoading(true);
-    try {
-      const localHistory = localStorage.getItem('brandHistoryArray');
-      if (localHistory) {
-        const parsedLocal = JSON.parse(localHistory);
-        if (parsedLocal && parsedLocal.length > 0) {
-           setHistory(parsedLocal);
+    const fetchHistory = async () => {
+      setIsLoading(true);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data, error } = await supabase
+            .from('brands')
+            .select('*')
+            .order('created_at', { ascending: false });
+            
+          if (error) throw error;
+          
+          const formattedData = data.map(item => ({
+             ...item,
+             logos: item.logo_url ? [{ url: item.logo_url }] : []
+          }));
+          setHistory(formattedData);
         } else {
-           setHistory([]);
+          setHistory([]);
         }
-      } else {
+      } catch(e) {
+        console.error("Supabase history error:", e);
         setHistory([]);
+      } finally {
+        setIsLoading(false);
       }
-    } catch(e) {
-      console.error("Local history error:", e);
-      setHistory([]);
-    } finally {
-      setIsLoading(false);
-    }
+    };
+    fetchHistory();
   }, []);
 
   const clearHistory = async () => {
     if (window.confirm(t('confirm_clear_history') || "Voulez-vous vraiment effacer tout votre historique ?")) {
-      // Effacement instantané local
-      localStorage.removeItem('brandHistoryArray');
       setHistory([]);
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) supabase.from('brands').delete().eq('user_id', user.id).then();
-      } catch (err) {}
+        if (user) await supabase.from('brands').delete().eq('user_id', user.id);
+      } catch (err) {
+        console.error("Erreur suppression:", err);
+      }
     }
   };
 
   const deleteItem = async (e, itemToDel) => {
-    e.stopPropagation(); // Évite de naviguer vers viewResult
+    e.stopPropagation();
     if (window.confirm(t('confirm_delete_item') || "Voulez-vous vraiment supprimer cette marque ?")) {
-       // Mise à jour locale
-       const newHistory = history.filter(item => item.slogan !== itemToDel.slogan);
+       const newHistory = history.filter(item => item.id !== itemToDel.id);
        setHistory(newHistory);
-       localStorage.setItem('brandHistoryArray', JSON.stringify(newHistory));
 
-       // Suppression en arrière-plan de Supabase si elle existe
        try {
          const { data: { user } } = await supabase.auth.getUser();
          if (user && itemToDel.id) {
-            supabase.from('brands').delete().eq('id', itemToDel.id).then();
+            await supabase.from('brands').delete().eq('id', itemToDel.id);
          }
-       } catch (err) {}
+       } catch (err) {
+         console.error("Erreur suppression item:", err);
+       }
     }
   };
 

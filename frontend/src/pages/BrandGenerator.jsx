@@ -44,7 +44,27 @@ const BrandGenerator = () => {
       
       if (response.ok) {
         const result = await response.json();
-        localStorage.setItem('brandResult', JSON.stringify({ ...result.data, brand_name: brandName }));
+        const finalData = { ...result.data, brand_name: brandName, industry: industry };
+        
+        // Sauvegarde dans Supabase
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase.from('brands').insert({
+              user_id: user.id,
+              brand_name: brandName,
+              industry: industry,
+              slogan: finalData.slogan,
+              colors: finalData.colors,
+              typography: finalData.typography,
+              logo_url: finalData.logos?.[0]?.url || null
+            });
+          }
+        } catch (dbError) {
+          console.error("Erreur sauvegarde DB:", dbError);
+        }
+
+        localStorage.setItem('brandResult', JSON.stringify(finalData));
         navigate('/results');
       } else {
         const errData = await response.json();

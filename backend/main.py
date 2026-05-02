@@ -12,6 +12,7 @@ from google.genai import types
 import base64
 import io
 import zipfile
+import uuid
 from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
 
@@ -245,6 +246,40 @@ def generate_logo_with_cloudflare(prompt: str):
 def read_root():
     return {"message": "Welcome to Brand.Ai API"}
 
+def upload_base64_to_supabase(b64_string: str, brand_name: str) -> str:
+    """
+    Décode le base64 et l'envoie vers le bucket Supabase 'brand_assets'.
+    Retourne l'URL publique de l'image. En cas d'échec, retourne le Base64 original.
+    """
+    try:
+        if "base64," in b64_string:
+            mime_part, data_part = b64_string.split("base64,")
+            mime_type = mime_part.split(":")[1].split(";")[0]
+            img_data = base64.b64decode(data_part)
+        else:
+            img_data = base64.b64decode(b64_string)
+            mime_type = "image/png"
+            
+        ext = mime_type.split("/")[-1]
+        if ext == "jpeg": ext = "jpg"
+            
+        filename = f"logos/{brand_name.replace(' ', '_').lower()}_{uuid.uuid4().hex[:8]}.{ext}"
+        
+        # Upload vers Supabase Storage
+        res = supabase.storage.from_("brand_assets").upload(
+            path=filename,
+            file=img_data,
+            file_options={"content-type": mime_type}
+        )
+        
+        # Obtenir l'URL publique
+        public_url = supabase.storage.from_("brand_assets").get_public_url(filename)
+        print(f"--- LOGO UPLOADÉ DANS SUPABASE: {public_url} ---")
+        return public_url
+    except Exception as e:
+        print(f"Erreur lors de l'upload vers Supabase Storage: {e}")
+        return b64_string
+
 def generate_logo_sync(brand_name, logo_prompt):
     logos = []
     print(f"--- GÉNÉRATION SYNCHRONE LOGO POUR: {brand_name} ---")
@@ -295,8 +330,11 @@ def generate_logo_sync(brand_name, logo_prompt):
                 if img_res.status_code == 200:
                     img_b64 = base64.b64encode(img_res.content).decode()
                     content_type = img_res.headers.get('Content-Type', 'image/png')
-                    logos.append({"id": 1, "url": f"data:{content_type};base64,{img_b64}"})
-                    print("--- LOGO NANOBANANA GÉNÉRÉ AVEC SUCCÈS ---")
+                    b64_string = f"data:{content_type};base64,{img_b64}"
+                    # Upload to Supabase Storage
+                    public_url = upload_base64_to_supabase(b64_string, brand_name)
+                    logos.append({"id": 1, "url": public_url})
+                    print("--- LOGO NANOBANANA GÉNÉRÉ ET UPLOADÉ AVEC SUCCÈS ---")
     except Exception as e:
         print(f"Erreur détaillé lors de l'appel NanoBanana: {e}")
 
@@ -305,7 +343,8 @@ def generate_logo_sync(brand_name, logo_prompt):
         print("--- ACTIVATION DU FALLBACK CLOUDFLARE WORKER ---")
         cf_logo_uri = generate_logo_with_cloudflare(logo_prompt)
         if cf_logo_uri:
-            logos.append({"id": 1, "url": cf_logo_uri})
+            public_url = upload_base64_to_supabase(cf_logo_uri, brand_name)
+            logos.append({"id": 1, "url": public_url})
 
     # TENTATIVE 3: Pollinations AI
     if not logos:
@@ -318,8 +357,10 @@ def generate_logo_sync(brand_name, logo_prompt):
             if img_res.status_code == 200:
                 img_b64 = base64.b64encode(img_res.content).decode()
                 content_type = img_res.headers.get('Content-Type', 'image/jpeg')
-                logos.append({"id": 1, "url": f"data:{content_type};base64,{img_b64}"})
-                print("--- LOGO POLLINATIONS GÉNÉRÉ AVEC SUCCÈS ---")
+                b64_string = f"data:{content_type};base64,{img_b64}"
+                public_url = upload_base64_to_supabase(b64_string, brand_name)
+                logos.append({"id": 1, "url": public_url})
+                print("--- LOGO POLLINATIONS GÉNÉRÉ ET UPLOADÉ AVEC SUCCÈS ---")
         except Exception as e:
             print(f"Erreur avec Pollinations: {e}")
             

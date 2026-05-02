@@ -121,21 +121,8 @@ const OtherFeatures = () => {
   const { t } = useLanguage();
 
   // State for Chat Sessions
-  const [sessions, setSessions] = useState(() => {
-    const saved = localStorage.getItem('entrepreneurChatHistory');
-    return saved ? JSON.parse(saved) : [{
-      id: Date.now(),
-      title: t('new_chat') || 'Nouvelle discussion',
-      messages: [{
-        id: 1,
-        role: 'assistant',
-        content: t('chat_welcome') || 'Bonjour ! Je suis BRAND.AI, votre conseiller stratégique. Posez-moi vos questions sur l\'entrepreneuriat, la gestion de projet ou le développement technique.',
-        timestamp: new Date().toLocaleTimeString()
-      }]
-    }];
-  });
-
-  const [activeSessionId, setActiveSessionId] = useState(sessions[0]?.id);
+  const [sessions, setSessions] = useState([]);
+  const [activeSessionId, setActiveSessionId] = useState(null);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [attachments, setAttachments] = useState([]); // Array of { file, preview, type, base64 }
@@ -146,8 +133,57 @@ const OtherFeatures = () => {
 
   const activeSession = sessions.find(s => s.id === activeSessionId) || sessions[0] || { messages: [] };
 
+  const syncSessionToDB = async (session) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase.from('chat_sessions').upsert({
+        id: session.id,
+        user_id: user.id,
+        title: session.title,
+        messages: session.messages,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+    } catch (err) {
+      console.error("Erreur sauvegarde session DB:", err);
+    }
+  };
+
   useEffect(() => {
-    localStorage.setItem('entrepreneurChatHistory', JSON.stringify(sessions));
+    const fetchSessions = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data, error } = await supabase
+            .from('chat_sessions')
+            .select('*')
+            .order('updated_at', { ascending: false });
+          
+          if (!error && data && data.length > 0) {
+            setSessions(data);
+            setActiveSessionId(data[0].id);
+          } else {
+            createNewChat();
+          }
+        } else {
+          // Fallback if not logged in
+          createNewChat();
+        }
+      } catch (err) {
+        console.error("Fetch sessions err:", err);
+        createNewChat();
+      }
+    };
+    fetchSessions();
+  }, []);
+
+  const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const activeSession = sessions.find(s => s.id === activeSessionId) || sessions[0] || { messages: [] };
+
+  useEffect(() => {
+    // Optionally update local storage as a fallback, but primary is DB
   }, [sessions]);
 
   useEffect(() => {
@@ -157,7 +193,7 @@ const OtherFeatures = () => {
   // Create a new chat session
   const createNewChat = () => {
     const newSession = {
-      id: Date.now(),
+      id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
       title: t('new_chat') || 'Nouvelle discussion',
       messages: [{
         id: 1,
@@ -166,17 +202,18 @@ const OtherFeatures = () => {
         timestamp: new Date().toLocaleTimeString()
       }]
     };
-    setSessions([newSession, ...sessions]);
+    setSessions(prev => [newSession, ...prev]);
     setActiveSessionId(newSession.id);
+    syncSessionToDB(newSession);
   };
 
   // Delete a session
-  const deleteSession = (e, id) => {
+  const deleteSession = async (e, id) => {
     e.stopPropagation();
     const newSessions = sessions.filter(s => s.id !== id);
     if (newSessions.length === 0) {
       const resetSession = {
-        id: Date.now(),
+        id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
         title: t('new_chat') || 'Nouvelle discussion',
         messages: [{
           id: 1,
@@ -187,10 +224,15 @@ const OtherFeatures = () => {
       };
       setSessions([resetSession]);
       setActiveSessionId(resetSession.id);
+      syncSessionToDB(resetSession);
     } else {
       setSessions(newSessions);
       if (activeSessionId === id) setActiveSessionId(newSessions[0].id);
     }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await supabase.from('chat_sessions').delete().eq('id', id);
+    } catch (err) {}
   };
 
   // Handle file selection
@@ -232,15 +274,18 @@ const OtherFeatures = () => {
     };
 
     // Update session messages
+    let updatedSessionToSave = null;
     const updatedSessions = sessions.map(s => {
       if (s.id === activeSessionId) {
         // Auto-update title if it's the first user message
         const newTitle = s.messages.length === 1 && userMsgContent ? (userMsgContent.substring(0, 25) + (userMsgContent.length > 25 ? '...' : '')) : s.title;
-        return { ...s, title: newTitle, messages: [...s.messages, userMessage] };
+        updatedSessionToSave = { ...s, title: newTitle, messages: [...s.messages, userMessage] };
+        return updatedSessionToSave;
       }
       return s;
     });
     setSessions(updatedSessions);
+    if (updatedSessionToSave) syncSessionToDB(updatedSessionToSave);
 
     setInput('');
     setAttachments([]);
@@ -275,7 +320,12 @@ const OtherFeatures = () => {
           content: data.response,
           timestamp: new Date().toLocaleTimeString()
         };
-        setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, messages: [...s.messages, assistantMessage] } : s));
+        setSessions(prev => {
+          const newS = prev.map(s => s.id === activeSessionId ? { ...s, messages: [...s.messages, assistantMessage] } : s);
+          const activeS = newS.find(s => s.id === activeSessionId);
+          if (activeS) syncSessionToDB(activeS);
+          return newS;
+        });
       } else {
         let errMsg = "Je suis désolé, je n'ai pas pu traiter votre demande pour le moment. Pourriez-vous réessayer ?";
         try { const d = await response.json(); errMsg += ` (Détail: ${d.detail || response.status})`; } catch (_) { }
@@ -288,7 +338,12 @@ const OtherFeatures = () => {
           content: errMsg,
           timestamp: new Date().toLocaleTimeString()
         };
-        setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, messages: [...s.messages, assistantMessage] } : s));
+        setSessions(prev => {
+          const newS = prev.map(s => s.id === activeSessionId ? { ...s, messages: [...s.messages, assistantMessage] } : s);
+          const activeS = newS.find(s => s.id === activeSessionId);
+          if (activeS) syncSessionToDB(activeS);
+          return newS;
+        });
       }
     } catch (err) {
       console.error('Chat error:', err);
@@ -298,7 +353,12 @@ const OtherFeatures = () => {
         content: "Oups ! Il y a un problème de réseau. Vérifiez votre connexion internet et réessayez.",
         timestamp: new Date().toLocaleTimeString()
       };
-      setSessions(prev => prev.map(s => s.id === activeSessionId ? { ...s, messages: [...s.messages, assistantMessage] } : s));
+      setSessions(prev => {
+        const newS = prev.map(s => s.id === activeSessionId ? { ...s, messages: [...s.messages, assistantMessage] } : s);
+        const activeS = newS.find(s => s.id === activeSessionId);
+        if (activeS) syncSessionToDB(activeS);
+        return newS;
+      });
     } finally {
       setIsLoading(false);
     }
